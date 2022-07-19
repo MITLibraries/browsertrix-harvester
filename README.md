@@ -6,7 +6,7 @@ A template repository for creating Python CLI applications.
 
 1. Rename "app" to the desired app name across the repo. (May be helpful to do a project-wide find-and-replace).
 2. Update Python version if needed.
-3. Install all dependencies to create initial Pipfile.lock with current versions.
+3. Install all dependencies with `make install`  to create initial Pipfile.lock with latest dependency versions.
 4. Add initial app description to README and update initial required ENV variable documentation as needed.
 5. Update license if needed (check app-specific dependencies for licensing terms).
 6. Check Github repository settings:
