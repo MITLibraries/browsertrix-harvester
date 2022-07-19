@@ -12,7 +12,7 @@ updates:
       interval: "daily"
 
   # Maintain dependencies for npm
-  - package-ecosystem: "pipenv"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "daily"
