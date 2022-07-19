@@ -9,4 +9,4 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y git
 COPY Pipfile* /
 RUN pipenv install
 
-ENTRYPOINT ["pipenv", "run", "app"]
+ENTRYPOINT ["pipenv", "run", "my_app"]

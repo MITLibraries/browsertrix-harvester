@@ -4,7 +4,7 @@ A template repository for creating Python CLI applications.
 
 ## App setup (delete this section and above after initial application setup)
 
-1. Rename "app" to the desired app name across the repo. (May be helpful to do a project-wide find-and-replace).
+1. Rename "my_app" to the desired app name across the repo. (May be helpful to do a project-wide find-and-replace).
 2. Update Python version if needed.
 3. Install all dependencies with `make install`  to create initial Pipfile.lock with latest dependency versions.
 4. Add initial app description to README and update initial required ENV variable documentation as needed.
@@ -20,7 +20,7 @@ A template repository for creating Python CLI applications.
    - Create an alert for the prod environment only, with notifications sent to the appropriate team(s).
    - If *not* using Sentry, delete Sentry configuration from config.py and test_config.py, and remove sentry_sdk from project dependencies.
 
-# app
+# my_app
 
 Description of the app
 
@@ -30,7 +30,7 @@ Description of the app
 - To update dependencies: `make update`
 - To run unit tests: `make test`
 - To lint the repo: `make lint`
-- To run the app: `pipenv run app --help`
+- To run the app: `pipenv run my_app --help`
 
 ## Required ENV
 
