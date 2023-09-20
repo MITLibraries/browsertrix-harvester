@@ -1,0 +1,1 @@
+docker build -t browsertrix-harvester:latest .

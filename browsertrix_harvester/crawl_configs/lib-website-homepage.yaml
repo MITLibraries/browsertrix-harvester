@@ -1,0 +1,18 @@
+generateCDX: true
+generateWACZ: true
+text: true
+# prevent PAGES from getting crawled; scoping
+exclude:
+  - ".*lib.mit.edu/search/.*"
+  - ".*mit.primo.exlibrisgroup.com/.*"
+# prevent RESOURCES / ASSETS from getting retrieved; URL requests
+blockRules:
+  - ".*googlevideo.com.*"
+  - ".*cdn.libraries.mit.edu/media/.*"
+  - "\\.(jpg|png)$"
+depth: 1
+maxPageLimit: 10
+scopeType: "domain"
+seeds:
+  - url: https://libraries.mit.edu/sitemap.xml
+    sitemap: https://libraries.mit.edu/sitemap.xml

@@ -6,19 +6,28 @@ name = "pypi"
 [packages]
 click = "*"
 sentry-sdk = "*"
+warcio = "*"
+requests = "*"
+pandas = "*"
+bs4 = "*"
+smart-open = {version = "*", extras = ["s3"]}
 
 [dev-packages]
-bandit = "*"
 black = "*"
 coverage = "*"
 coveralls = "*"
 mypy = "*"
-pylama = {extras = ["all"], version = "*"}
 pytest = "*"
-pyflakes = "==2.4.0"
+ruff = "*"
+safety= "*"
+pre-commit = "*"
+ipython = "*"
+types-beautifulsoup4 = "*"
+pandas-stubs = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.11"
 
 [scripts]
-my_app = "python -c \"from my_app.cli import main; main()\""
+btxharvest = "docker run -it -v $PWD/output/crawls:/crawls browsertrix-harvester:latest"
+btxharvest-cli = "python -c \"from browsertrix_harvester.cli import main; main()\""

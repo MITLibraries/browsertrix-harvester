@@ -1,6 +1,6 @@
 import logging
 
-from my_app.config import configure_logger, configure_sentry
+from browsertrix_harvester.config import configure_logger, configure_sentry
 
 
 def test_configure_logger_not_verbose():

@@ -1,0 +1,51 @@
+generateCDX: true
+generateWACZ: true
+text: true
+# prevent PAGES from getting crawled; scoping
+exclude:
+  - ".*lib.mit.edu/search/.*"
+  - ".*mit.primo.exlibrisgroup.com/.*"
+# prevent RESOURCES / ASSETS from getting retrieved; URL requests
+blockRules:
+  - ".*googlevideo.com.*"
+  - ".*cdn.libraries.mit.edu/media/.*"
+  - "\\.(jpg|png)$"
+depth: 1
+scopeType: "domain"
+seeds:
+  - url: https://libraries.mit.edu/sitemap.xml
+    sitemap: https://libraries.mit.edu/sitemap.xml
+  - url: https://libraries.mit.edu/exhibits/sitemap.xml
+    sitemap: https://libraries.mit.edu/exhibits/sitemap.xml
+  - url: https://libraries.mit.edu/mithistory/sitemap.xml
+    sitemap: https://libraries.mit.edu/mithistory/sitemap.xml
+  - url: https://libraries.mit.edu/news/sitemap.xml
+    sitemap: https://libraries.mit.edu/news/sitemap.xml
+  - url: https://libraries.mit.edu/scholarly/sitemap.xml
+    sitemap: https://libraries.mit.edu/scholarly/sitemap.xml
+  - url: https://libraries.mit.edu/150books/sitemap.xml
+    sitemap: https://libraries.mit.edu/150books/sitemap.xml
+  - url: https://libraries.mit.edu/giving/sitemap.xml
+    sitemap: https://libraries.mit.edu/giving/sitemap.xml
+  - url: https://libraries.mit.edu/music-oral-history/sitemap.xml
+    sitemap: https://libraries.mit.edu/music-oral-history/sitemap.xml
+  - url: https://libraries.mit.edu/docs/sitemap.xml
+    sitemap: https://libraries.mit.edu/docs/sitemap.xml
+  - url: https://libraries.mit.edu/data-management/sitemap.xml
+    sitemap: https://libraries.mit.edu/data-management/sitemap.xml
+  - url: https://libraries.mit.edu/akdc/sitemap.xml
+    sitemap: https://libraries.mit.edu/akdc/sitemap.xml
+  - url: https://libraries.mit.edu/mit-reads/sitemap.xml
+    sitemap: https://libraries.mit.edu/mit-reads/sitemap.xml
+  - url: https://libraries.mit.edu/pomeroy/sitemap.xml
+    sitemap: https://libraries.mit.edu/pomeroy/sitemap.xml
+  - url: https://libraries.mit.edu/mit-and-slavery/sitemap.xml
+    sitemap: https://libraries.mit.edu/mit-and-slavery/sitemap.xml
+  - url: https://libraries.mit.edu/creos/sitemap.xml
+    sitemap: https://libraries.mit.edu/creos/sitemap.xml
+  - url: https://libraries.mit.edu/distinctive-collections/sitemap.xml
+    sitemap: https://libraries.mit.edu/distinctive-collections/sitemap.xml
+  - url: https://libraries.mit.edu/about/sitemap.xml
+    sitemap: https://libraries.mit.edu/about/sitemap.xml
+  - url: https://libraries.mit.edu/opendata/sitemap.xml
+    sitemap: https://libraries.mit.edu/opendata/sitemap.xml
