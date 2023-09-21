@@ -11,6 +11,7 @@ requests = "*"
 pandas = "*"
 bs4 = "*"
 smart-open = {version = "*", extras = ["s3"]}
+yake = "*"
 
 [dev-packages]
 black = "*"

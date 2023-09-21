@@ -17,6 +17,7 @@ import smart_open  # type: ignore[import]
 from bs4 import BeautifulSoup
 from warcio import ArchiveIterator  # type: ignore[import]
 from warcio.recordloader import ArcWarcRecord  # type: ignore[import]
+from yake import KeywordExtractor  # type: ignore[import]
 
 from browsertrix_harvester.exceptions import WaczFileDoesNotExist
 
@@ -60,11 +61,25 @@ class CrawlParser:
         "og:description",
     )
 
+    FULLTEXT_KEYWORD_STOPWORDS = (
+        "Skip to Main",
+        "Main Content",
+        "MIT",
+        "Main",
+        "Content",
+        "Skip",
+        "Libraries",
+        "Open",
+    )
+
     def __init__(self, wacz_filepath: str):
         self.wacz_filepath = wacz_filepath
         self._archive: zipfile.ZipFile | None = None
         self._websites_df: pd.DataFrame | None = None
         self._websites_metadata: CrawlMetadataRecords | None = None
+
+        #
+        self._kw_extractor: KeywordExtractor | None = None
 
     def __enter__(self) -> "CrawlParser":
         """Allows CrawlParser to get used in a context manager context."""
@@ -114,10 +129,25 @@ class CrawlParser:
             # reset index
             merged_df = merged_df.reset_index()
 
+            # replace NaN values with None
+            merged_df = merged_df.where(pd.notna(merged_df), None)
+
             # cache result
             self._websites_df = merged_df
 
         return self._websites_df
+
+    @property
+    def kw_extractor(self) -> KeywordExtractor:
+        if self._kw_extractor is None:
+            # init keyword extractor
+            self._kw_extractor = KeywordExtractor()
+
+            # update stopwords
+            self._kw_extractor.stopword_set.update(
+                [word.lower().strip() for word in self.FULLTEXT_KEYWORD_STOPWORDS]
+            )
+        return self._kw_extractor
 
     def close(self) -> None:
         if self._archive:
@@ -229,6 +259,48 @@ class CrawlParser:
                     tags[og_tag_name_friendly] = content_stripped
         return tags
 
+    def _parse_fulltext(self, fulltext: str) -> str:
+        """Cleanup fulltext as provided by Browsertrix crawl."""
+        fulltext = fulltext.replace("\n", " ")
+        fulltext = fulltext.replace("\r", " ")
+        fulltext = fulltext.replace("\t", " ")
+        return fulltext
+
+    def _parse_fulltext_50_words(self, fulltext: str) -> str:
+        """Extract the first 50 words from the fulltext."""
+        first_50_words = fulltext.split(" ")[:50]
+        if len(first_50_words) == 50:
+            first_50_words.append("[...]")
+        return " ".join(first_50_words)
+
+    def _parse_fulltext_keywords(self, fulltext: str) -> str:
+        """Parse keywords from fulltext, using YAKE keyword extractor."""
+        keywords = self.kw_extractor.extract_keywords(fulltext)
+        return ",".join([keyword for keyword, _score in keywords])
+
+    def parse_fulltext_fields(
+        self, raw_fulltext: str | None, include_fulltext: bool = False
+    ) -> dict:
+        """Parse fulltext fields for output metadata.
+
+        While both first 50 words and keywords are always calculated, we don't always
+        include the FULL fulltext.  And, if not text is provided, we return None for all
+        fulltext fields.
+        """
+        if raw_fulltext is None:
+            return {
+                "fulltext": None,
+                "fulltext_50_words": None,
+                "fulltext_keywords": None,
+            }
+
+        fulltext = self._parse_fulltext(raw_fulltext)
+        return {
+            "fulltext": fulltext if include_fulltext else None,
+            "fulltext_50_words": self._parse_fulltext_50_words(fulltext),
+            "fulltext_keywords": self._parse_fulltext_keywords(fulltext),
+        }
+
     def generate_metadata(self, include_fulltext: bool = False) -> "CrawlMetadataRecords":
         """Generate dataframe of metadata records for websites.
 
@@ -260,7 +332,6 @@ class CrawlParser:
                 "cdx_title": row.title,
                 "cdx_offset": row.offset,
                 "cdx_length": row.length,
-                "fulltext": row.text if include_fulltext else None,
             }
 
             # augment with metadata from actual HTML content
@@ -268,12 +339,25 @@ class CrawlParser:
             html_metadata = self.get_html_content_metadata(html_content)
             metadata.update(html_metadata)
 
+            # augment with fulltext
+            metadata.update(
+                self.parse_fulltext_fields(row.text, include_fulltext=include_fulltext)
+            )
+
+            # append to list
             all_metadata.append(metadata)
 
+        # create dataframe
         websites_metadata_df = pd.DataFrame(all_metadata)
+
+        # replace NaN with python None
+        websites_metadata_df = websites_metadata_df.where(
+            pd.notna(websites_metadata_df), None
+        )
+
+        # init instance of CrawlMetadataRecords and cache
         self._websites_metadata = CrawlMetadataRecords(websites_metadata_df)
 
-        # return instance of CrawlMetadataRecords
         return self._websites_metadata
 
 
