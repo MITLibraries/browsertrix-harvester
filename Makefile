@@ -11,7 +11,7 @@ update: install ## Update all Python dependencies
 
 ### Test commands ###
 test: ## Run tests and print a coverage report
-	pipenv run coverage run --source=my_app -m pytest -vv
+	pipenv run coverage run --source=browsertrix_harvester -m pytest -vv
 	pipenv run coverage report -m
 
 coveralls: test
