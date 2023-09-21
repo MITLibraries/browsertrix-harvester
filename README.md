@@ -15,9 +15,9 @@ CLI app for performing a web crawl via [Browsertrix-Crawler](https://github.com/
 - Build docker image: `make build-docker`
   - builds local image `browsertrix-harvester-dev:latest`
 - To run the app:
-  - Non-dockerized: `pipenv run btrixharvest --help`
+  - Non-Dockerized: `pipenv run btrixharvest --help`
     - works locally for many things, but will throw error for actions that perform crawls
-  - Dockerizsed: `pipenv run btrixharvest-dockerized --help`
+  - Dockerized: `pipenv run btrixharvest-dockerized --help`
     - full functionality locally
     - invokes docker container, with an entrypoint that points back to `btrixharvest` 
 
