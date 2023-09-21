@@ -44,13 +44,17 @@ ruff-apply:
 
 # CLI commands
 shell:
-	pipenv run btrixharvest shell
+	pipenv run btrixharvest-dockerized shell
 
 test-crawl-homepage:
-	pipenv run btrixharvest --verbose harvest \
+	pipenv run btrixharvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/btrixharvest/browsertrix_harvester/crawl_configs/lib-website-homepage.yaml" \
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml"
+
+# Docker commands
+build-docker:
+	docker build --platform linux/arm64 -t $(ECR_NAME_DEV):latest .
 
 ### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
 ###   this is a Lambda repo, uncomment the FUNCTION line below  ###

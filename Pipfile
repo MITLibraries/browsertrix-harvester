@@ -30,5 +30,5 @@ pandas-stubs = "*"
 python_version = "3.11"
 
 [scripts]
-btrixharvest = "docker run -it -v $PWD/output/crawls:/crawls browsertrix-harvester:latest"
-btrixharvest-cli = "python -c \"from browsertrix_harvester.cli import main; main()\""
+btrixharvest = "python -c \"from browsertrix_harvester.cli import main; main()\""
+btrixharvest-dockerized = "docker run -it -v $PWD/output/crawls:/crawls browsertrix-harvester-dev:latest"
