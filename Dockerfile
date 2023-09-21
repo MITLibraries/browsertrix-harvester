@@ -26,14 +26,14 @@ RUN pip3 install --upgrade pip \
 
 # NOTE: /app is already used by browsertrix-crawler
 # Setup python virtual environment
-WORKDIR /btxharvest
-COPY Pipfile /btxharvest/Pipfile
+WORKDIR /btrixharvest
+COPY Pipfile /btrixharvest/Pipfile
 RUN pipenv install --python 3.11
 
 # Copy full browstrix-harvester app
-COPY pyproject.toml /btxharvest/
-COPY docker-entrypoint.sh /btxharvest/
-COPY browsertrix_harvester/ /btxharvest/browsertrix_harvester/
-COPY tests/ /btxharvest/tests/
+COPY pyproject.toml /btrixharvest/
+COPY docker-entrypoint.sh /btrixharvest/
+COPY browsertrix_harvester/ /btrixharvest/browsertrix_harvester/
+COPY tests/ /btrixharvest/tests/
 
-ENTRYPOINT ["/btxharvest/docker-entrypoint.sh"]
+ENTRYPOINT ["/btrixharvest/docker-entrypoint.sh"]

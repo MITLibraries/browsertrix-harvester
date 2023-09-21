@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Crawler:
     """Class that manages browsertrix crawls."""
 
-    LOCAL_CONFIG_YAML_FILEPATH = "/btxharvest/crawl-config.yaml"
+    LOCAL_CONFIG_YAML_FILEPATH = "/btrixharvest/crawl-config.yaml"
 
     # ruff: noqa: FBT001, FBT002
     def __init__(

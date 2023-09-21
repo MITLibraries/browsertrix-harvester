@@ -12,20 +12,25 @@ classDiagram
     }
     class Crawler{
         crawl_name: str
-        config_yaml_filename: str
+        config_yaml_filepath: str
         sitemap_from_date: str         
+        @wacz_filepath: str
+        @crawl_output_dir: str
         crawl() -> WACZ archive
     }
     class CrawlParser{
         wacz_filepath: str
         @archive: ZipFile
         @websites_df: DataFrame
-        create_website_metadata_records_df() -> DataFrame
-        create_website_metadata_records_xml() -> XML Bytes
-        
+        generate_metadata() -> DataFrame        
+    }
+    class CrawlMetadataRecords{
+        df: DataFrame
+        write() -> File
     }
     Crawler <|-- Cli
     CrawlParser <|-- Cli
+    CrawlMetadataRecords <|-- CrawlParser
     
 ```
 
@@ -46,6 +51,7 @@ flowchart LR
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
     parser("class CrawlParser")
+    metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
     
@@ -74,11 +80,12 @@ flowchart LR
         crawler -->|Step 2: call\nvia subprocess| btrix        
         btrix -->|writes to| crawls_folder
         cli_harvest -->|Step 4: call| parser
-        crawls_folder -->|reads from| parser
+        parser -->|reads from| crawls_folder
+        parser --> metadata
     end
     
-    crawler -->|"Step 3: write (optional)"| crawls_folder
-    parser -->|Step 5: write| crawls_folder
+    cli_harvest -->|"Step 3: write (optional)"| output_wacz
+    metadata -->|Step 5: write| output_metadata
     
 ```
 
@@ -97,6 +104,7 @@ flowchart LR
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
     parser("class CrawlParser")
+    metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
     
@@ -118,11 +126,12 @@ flowchart LR
         crawler -->|Step 2: call\nvia subprocess| btrix        
         btrix -->|writes to| crawls_folder
         cli_harvest -->|Step 4: call| parser
-        crawls_folder -->|reads from| parser
+        parser -->|reads from| crawls_folder
+        parser --> metadata
     end
     
-    crawler -->|"Step 3: write (optional)"| output_wacz
-    parser -->|Step 5: write| output_metadata
+    cli_harvest -->|"Step 3: write (optional)"| output_wacz
+    metadata -->|Step 5: write| output_metadata
     
     subgraph S3 bucket
         output_wacz

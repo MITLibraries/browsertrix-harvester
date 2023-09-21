@@ -8,7 +8,7 @@ TODO: Description of the app...
 - To update dependencies: `make update`
 - To run unit tests: `make test`
 - To lint the repo: `make lint`
-- To run the app: `pipenv run btxharvest --help`
+- To run the app: `pipenv run btrixharvest --help`
 
 ## Environment Variables
 

@@ -125,12 +125,14 @@ def harvest(
         ) as wacz_in:
             wacz_out.write(wacz_in.read())
 
-    # parse and upload metadata records if destination provided
+    # parse crawl and generate metadata records
     if metadata_output_file is not None:
+        # parse crawl
         logger.info("parsing WACZ archive file")
         parser = CrawlParser(crawler.wacz_filepath)
         logger.info("found %s websites from crawl", len(parser.websites_df))
 
+        # generate metadata records
         parser.generate_metadata(include_fulltext=include_fulltext).write(
             metadata_output_file
         )

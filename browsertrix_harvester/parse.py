@@ -266,27 +266,18 @@ class CrawlParser:
         fulltext = fulltext.replace("\t", " ")
         return fulltext
 
-    def _parse_fulltext_50_words(self, fulltext: str) -> str:
-        """Extract the first 50 words from the fulltext."""
-        first_50_words = fulltext.split(" ")[:50]
-        if len(first_50_words) == 50:
-            first_50_words.append("[...]")
-        return " ".join(first_50_words)
-
     def _parse_fulltext_keywords(self, fulltext: str) -> str:
         """Parse keywords from fulltext, using YAKE keyword extractor."""
         keywords = self.kw_extractor.extract_keywords(fulltext)
         return ",".join([keyword for keyword, _score in keywords])
 
     def parse_fulltext_fields(
-        self, raw_fulltext: str | None, include_fulltext: bool = False
+        self,
+        raw_fulltext: str | None,
+        include_fulltext: bool = False,
+        include_fulltext_keywords: bool = True,
     ) -> dict:
-        """Parse fulltext fields for output metadata.
-
-        While both first 50 words and keywords are always calculated, we don't always
-        include the FULL fulltext.  And, if not text is provided, we return None for all
-        fulltext fields.
-        """
+        """Parse fulltext fields for output metadata."""
         if raw_fulltext is None:
             return {
                 "fulltext": None,
@@ -297,8 +288,9 @@ class CrawlParser:
         fulltext = self._parse_fulltext(raw_fulltext)
         return {
             "fulltext": fulltext if include_fulltext else None,
-            "fulltext_50_words": self._parse_fulltext_50_words(fulltext),
-            "fulltext_keywords": self._parse_fulltext_keywords(fulltext),
+            "fulltext_keywords": self._parse_fulltext_keywords(fulltext)
+            if include_fulltext_keywords
+            else None,
         }
 
     def generate_metadata(self, include_fulltext: bool = False) -> "CrawlMetadataRecords":
