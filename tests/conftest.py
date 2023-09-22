@@ -37,7 +37,7 @@ def mock_smart_open(fake_config_yaml_content, request):
 
 @pytest.fixture
 def create_mocked_crawler(mock_smart_open):
-    def crawler_factory():
+    def crawler_factory() -> Crawler:
         return Crawler(
             crawl_name="test",
             config_yaml_filepath="path/to/fake_config.yaml",

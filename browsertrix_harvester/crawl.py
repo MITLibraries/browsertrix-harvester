@@ -25,13 +25,11 @@ class Crawler:
         config_yaml_filepath: str,
         sitemap_from_date: str | None = None,
         num_workers: int = 4,
-        overwrite: bool = True,
     ) -> None:
         self.crawl_name = crawl_name
         self.config_yaml_filepath = config_yaml_filepath
         self.sitemap_from_date = sitemap_from_date
         self.num_workers = num_workers
-        self.overwrite = overwrite
 
     @property
     def crawl_output_dir(self) -> str:
@@ -42,7 +40,54 @@ class Crawler:
         """Location of WACZ archive after crawl is completed."""
         return f"{self.crawl_output_dir}/{self.crawl_name}.wacz"
 
-    def copy_config_yaml_local(self) -> None:
+    @require_container
+    def crawl(self) -> tuple[int, list[str], list[str]]:
+        """Perform a browsertrix crawl.
+
+        This method is decorated with @required_container that will prevent it from
+        running if not inside a Docker container with the alias executable "crawl" that
+        is a symlink to the Browsertrix node application.
+
+        The crawl itself is invoked via a subprocess OS command that runs and waits for
+        the crawl to complete.
+        """
+        # copy config yaml to known, local file location
+        self._copy_config_yaml_local()
+
+        # remove pre-existing crawl
+        self._remove_previous_crawl()
+
+        # build subprocess command
+        cmd = self._build_subprocess_command()
+
+        stdout, stderr = [], []
+        # ruff: noqa: S603
+        with subprocess.Popen(
+            cmd,
+            cwd="/crawls",
+            env=self._get_subprocess_env_vars(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        ) as process:
+            if process.stdout is not None:  # pragma: no cover
+                for line in process.stdout:
+                    # ruff: noqa: PLW2901
+                    line = line.strip()
+                    if line is not None and line != "":
+                        logger.debug(line)
+                        stdout.append(line)
+            if process.stderr is not None:  # pragma: no cover
+                for line in process.stderr:
+                    # ruff: noqa: PLW2901
+                    line = line.strip()
+                    if line is not None and line != "":
+                        logger.debug(line)
+                        stderr.append(line)
+            return_code = process.wait()
+        return return_code, stdout, stderr
+
+    def _copy_config_yaml_local(self) -> None:
         """Download and/or copy config YAML to expected location"""
         logger.info(
             "creating docker container copy of config YAML from: %s",
@@ -61,20 +106,20 @@ class Crawler:
             )
             raise ConfigYamlError from e
 
-    @require_container
-    def crawl(self) -> tuple[int, list[str], list[str]]:
-        """Perform a browsertrix crawl.
+    def _remove_previous_crawl(self) -> None:
+        """Remove previous crawl if exists.
 
-        This method is decorated with @required_container that will prevent it from
-        running if not inside a Docker container with the alias executable "crawl" that
-        is a symlink to the Browsertrix node application.
-
-        The crawl itself is invoked via a subprocess OS command that runs and waits for
-        the crawl to complete.
+        Browsertrix will APPEND to previous crawls -- WARC files, indexed data, etc. -- if
+        the crawl directory already exists.  While the WACZ file will overwrite, this can
+        still introduce some unneeded complexity for a container that really should only
+        ever have one crawl per invocation.
         """
-        # copy config yaml to known, local file location
-        self.copy_config_yaml_local()
+        if os.path.exists(self.crawl_output_dir):
+            logger.warning("removing pre-existing crawl at: %s", self.crawl_output_dir)
+            shutil.rmtree(self.crawl_output_dir)
 
+    def _build_subprocess_command(self) -> list:
+        """Build subprocess command that will execute browsertrix-crawler."""
         cmd = [
             # fmt: off
             "crawl",
@@ -88,38 +133,7 @@ class Crawler:
         if self.sitemap_from_date is not None:
             cmd.extend(["--sitemapFromDate", self.sitemap_from_date])
         logger.info(cmd)
-
-        # remove pre-existing crawl by crawl-name if overwrite=True
-        if self.overwrite and os.path.exists(self.crawl_output_dir):
-            logger.info("removing pre-existing crawl at: %s", self.crawl_output_dir)
-            shutil.rmtree(self.crawl_output_dir)
-
-        stdout, stderr = [], []
-        # ruff: noqa: S603
-        with subprocess.Popen(
-            cmd,
-            cwd="/crawls",
-            env=self._get_subprocess_env_vars(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-        ) as process:
-            if process.stdout is not None:
-                for line in process.stdout:
-                    # ruff: noqa: PLW2901
-                    line = line.strip()
-                    if line is not None and line != "":
-                        logger.debug(line)
-                        stdout.append(line)
-            if process.stderr is not None:
-                for line in process.stderr:
-                    # ruff: noqa: PLW2901
-                    line = line.strip()
-                    if line is not None and line != "":
-                        logger.debug(line)
-                        stderr.append(line)
-            return_code = process.wait()
-        return return_code, stdout, stderr
+        return cmd
 
     @staticmethod
     def _get_subprocess_env_vars() -> dict:
