@@ -54,7 +54,7 @@ test-crawl-homepage:
 
 # Docker commands
 build-docker:
-	docker build --platform linux/arm64 -t $(ECR_NAME_DEV):latest .
+	docker build -t $(ECR_NAME_DEV):latest .
 
 ### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
 ###   this is a Lambda repo, uncomment the FUNCTION line below  ###
