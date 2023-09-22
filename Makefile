@@ -49,7 +49,7 @@ shell:
 test-crawl-homepage:
 	pipenv run btrixharvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
-	--config-yaml-file="/btrixharvest/browsertrix_harvester/crawl_configs/lib-website-homepage.yaml" \
+	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml"
 
 # Docker commands
