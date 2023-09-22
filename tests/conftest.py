@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from browsertrix_harvester.crawl import Crawler
+from browsertrix_harvester.parse import CrawlParser
 
 
 @pytest.fixture(autouse=True)
@@ -56,3 +57,8 @@ def _mock_inside_container():
     original_exists = os.path.exists
     with patch("os.path.exists", side_effect=mock_exists):
         yield
+
+
+@pytest.fixture
+def mocked_parser():
+    return CrawlParser("tests/fixtures/homepage.wacz")

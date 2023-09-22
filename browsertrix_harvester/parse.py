@@ -101,8 +101,6 @@ class CrawlParser:
         self._archive: zipfile.ZipFile | None = None
         self._websites_df: pd.DataFrame | None = None
         self._websites_metadata: CrawlMetadataRecords | None = None
-
-        #
         self._kw_extractor: KeywordExtractor | None = None
 
     def __enter__(self) -> "CrawlParser":
@@ -122,7 +120,19 @@ class CrawlParser:
     def archive(self) -> zipfile.ZipFile:
         if self._archive is None:
             with smart_open.open(self.wacz_filepath, "rb") as file_obj:
-                self._archive = zipfile.ZipFile(io.BytesIO(file_obj.read()))
+                _archive = zipfile.ZipFile(io.BytesIO(file_obj.read()))
+
+                # check for required files that could be missing from an incomplete crawl
+                missing_files = {
+                    self.EXTRA_PAGES_FILEPATH,
+                    self.CDX_INDEX_FILEPATH,
+                }.difference(set(_archive.namelist()))
+                if len(missing_files) > 0:
+                    msg = f"missing files: {list(missing_files)}"
+                    # ruff: noqa: TRY003
+                    raise WaczFileDoesNotExist(msg)
+
+                self._archive = _archive
         return self._archive
 
     @property
@@ -133,16 +143,9 @@ class CrawlParser:
         filtered to only HTML pages, and those with CDX data present.
         """
         if self._websites_df is None:
-            try:
-                extra_pages_df = self._get_extra_pages_df()
-            except WaczFileDoesNotExist:
-                logger.exception("could not find extraPages.jsonlin WACZ archive")
-                raise
-            try:
-                cdx_df = self._get_cdx_df()
-            except WaczFileDoesNotExist:
-                logger.exception("could not find index.cdx in WACZ archive")
-                raise
+            # load extra pages and CDX as dataframes
+            extra_pages_df = self._get_extra_pages_df()
+            cdx_df = self._get_cdx_df()
 
             # merge dataframes
             merged_df = extra_pages_df.merge(cdx_df, how="left", on="url")

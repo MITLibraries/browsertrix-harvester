@@ -1,3 +1,5 @@
+"""tests.test_crawler"""
+
 import os
 from unittest.mock import MagicMock, patch
 
