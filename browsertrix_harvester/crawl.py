@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Crawler:
     """Class that manages browsertrix crawls."""
 
-    LOCAL_CONFIG_YAML_FILEPATH = "/btrixharvest/crawl-config.yaml"
+    DOCKER_CONTAINER_CONFIG_YAML_FILEPATH = "/btrixharvest/crawl-config.yaml"
 
     # ruff: noqa: FBT001, FBT002
     def __init__(
@@ -33,19 +33,16 @@ class Crawler:
         self.num_workers = num_workers
         self.overwrite = overwrite
 
-        # establish local copy of config YAML in container
-        self._copy_config_yaml()
+    @property
+    def crawl_output_dir(self) -> str:
+        return f"/crawls/collections/{self.crawl_name}"
 
     @property
     def wacz_filepath(self) -> str:
         """Location of WACZ archive after crawl is completed."""
         return f"{self.crawl_output_dir}/{self.crawl_name}.wacz"
 
-    @property
-    def crawl_output_dir(self) -> str:
-        return f"/crawls/collections/{self.crawl_name}"
-
-    def _copy_config_yaml(self) -> None:
+    def copy_config_yaml_local(self) -> None:
         """Download and/or copy config YAML to expected location"""
         logger.info(
             "creating docker container copy of config YAML from: %s",
@@ -54,7 +51,9 @@ class Crawler:
         try:
             with smart_open.open(
                 self.config_yaml_filepath, "rb"
-            ) as f_in, smart_open.open(self.LOCAL_CONFIG_YAML_FILEPATH, "wb") as f_out:
+            ) as f_in, smart_open.open(
+                self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH, "wb"
+            ) as f_out:
                 f_out.write(f_in.read())
         except Exception as e:
             logger.exception(
@@ -73,11 +72,14 @@ class Crawler:
         The crawl itself is invoked via a subprocess OS command that runs and waits for
         the crawl to complete.
         """
+        # copy config yaml to known, local file location
+        self.copy_config_yaml_local()
+
         cmd = [
             # fmt: off
             "crawl",
             "--collection", self.crawl_name,
-            "--config", self.LOCAL_CONFIG_YAML_FILEPATH,
+            "--config", self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
             "--workers", str(self.num_workers),
             "--useSitemap",
             "--logging", "stats",
