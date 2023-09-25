@@ -101,6 +101,13 @@ def parse_url_content(ctx: click.Context, wacz_filepath: str, url: str) -> None:
     is_flag=True,
     help="Pass to include parsed fulltext from website in generated structured metadata",
 )
+@click.option(
+    "--num-workers",
+    default=4,
+    required=False,
+    type=int,
+    help="Number of parallel thread workers for crawler",
+)
 @click.pass_context
 def harvest(
     ctx: click.Context,
@@ -110,10 +117,16 @@ def harvest(
     wacz_output_file: str,
     metadata_output_file: str,
     include_fulltext: bool,
+    num_workers: int,
 ) -> None:
     """Perform a web crawl and parse structured data."""
     # perform crawl
-    crawler = Crawler(crawl_name, config_yaml_file, sitemap_from_date=sitemap_from_date)
+    crawler = Crawler(
+        crawl_name,
+        config_yaml_file,
+        sitemap_from_date=sitemap_from_date,
+        num_workers=num_workers,
+    )
     crawler.crawl()
     logger.info("crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)
 

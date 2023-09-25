@@ -50,7 +50,8 @@ test-crawl-homepage:
 	pipenv run btrixharvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
-	--metadata-output-file="/crawls/collections/homepage/homepage.xml"
+	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
+	--num-workers 4
 
 # Docker commands
 build-docker:
