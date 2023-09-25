@@ -57,7 +57,8 @@ test-crawl-local:
 	--crawl-name="homepage" \
 	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
-	--num-workers 4
+	--num-workers 4 \
+	--btrix-args-json='{"--maxPageLimit":"15"}'
 
 # remote ecs task crawl in Dev1
 test-harvest-ecs:

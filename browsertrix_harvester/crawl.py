@@ -122,38 +122,41 @@ class Crawler:
             shutil.rmtree(self.crawl_output_dir)
 
     def _build_subprocess_command(self) -> list:
-        """Build subprocess command that will execute browsertrix-crawler.
+        """Build subprocess command that will execute browsertrix-crawler with args.
 
-        Building the command has three tiers of overriding args, in order of use:
-        1. defined here; overrides everything
-        2. defined in YAML; overrides defaults, overriden by command line args
-        3. default to browsertrix-crawler; overriden by command line args or YAML
-
-        By adding arguments like --workers or --sitemapFromDate ONLY if they are defined
-        when instantiating this Crawler class, this allows using values present in the
-        config YAML if present there.
+        Build dictionary of key/value pairs from defaults defined here, common arguments
+        broken out as explicit CLI arguments, and any additional arguments passed as a
+        JSON string via CLI command that browsertrix accepts.  They are applied and
+        overridden in that order, then serialized as a flat list for OS command.
         """
         # build base command
         cmd = [
-            # fmt: off
             "crawl",
-            "--collection", self.crawl_name,
-            "--config", self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
             "--useSitemap",
-            "--logging", "stats",
-            # fmt: on
         ]
 
-        # check for explicit args from CLI
-        if self.num_workers is not None:
-            cmd.extend(["--workers", str(self.num_workers)])
-        if self.sitemap_from_date is not None:
-            cmd.extend(["--sitemapFromDate", self.sitemap_from_date])
+        # default args
+        btrix_args = {
+            "--collection": self.crawl_name,
+            "--config": self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
+            "--logging": "stats",
+        }
 
-        # lastly, if JSON string of browsertrix arguments present, parse and apply
+        # apply common arguments as standalone CLI arguments
+        if self.num_workers is not None:
+            btrix_args["--workers"] = str(self.num_workers)
+        if self.sitemap_from_date is not None:
+            btrix_args["--sitemapFromDate"] = self.sitemap_from_date
+
+        # lastly, if JSON string of btrix args provided, parse and apply
         if self.btrix_args_json is not None:
-            btrix_args = json.loads(self.btrix_args_json)
-            cmd.extend([str(item) for sublist in btrix_args.items() for item in sublist])
+            btrix_additional_args = json.loads(self.btrix_args_json)
+            for arg_name, arg_value in btrix_additional_args.items():
+                btrix_args[arg_name] = str(arg_value)
+
+        # flatten to list and extend base command
+        btrix_args_list = [item for sublist in btrix_args.items() for item in sublist]
+        cmd.extend(btrix_args_list)
 
         logger.info(cmd)
 

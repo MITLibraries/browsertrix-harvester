@@ -78,7 +78,7 @@ def test_crawler_build_command(create_mocked_crawler):
     # assert without sitemap_from_date
     crawler.sitemap_from_date = None
     command = crawler._build_subprocess_command()
-    assert command == [
+    assert set(command) == {
         # fmt: off
         "crawl",
         "--collection", crawler.crawl_name,
@@ -87,13 +87,13 @@ def test_crawler_build_command(create_mocked_crawler):
         "--logging", "stats",
         "--workers", str(crawler.num_workers),
         # fmt: on
-    ]
+    }
 
     # assert when sitemap_from_date is included
     from_date = "1979-01-01"
     crawler.sitemap_from_date = from_date
     command = crawler._build_subprocess_command()
-    assert command == [
+    assert set(command) == {
         # fmt: off
         "crawl",
         "--collection", crawler.crawl_name,
@@ -103,7 +103,7 @@ def test_crawler_build_command(create_mocked_crawler):
         "--workers", str(crawler.num_workers),
         "--sitemapFromDate", from_date
         # fmt: on
-    ]
+    }
 
 
 @pytest.mark.usefixtures("_mock_inside_container")
