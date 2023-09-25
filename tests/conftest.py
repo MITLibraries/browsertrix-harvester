@@ -26,7 +26,7 @@ def fake_config_yaml_content():
 
 
 @pytest.fixture
-def mock_smart_open(fake_config_yaml_content, request):
+def mock_config_yaml_open(fake_config_yaml_content, request):
     should_raise = request.node.get_closest_marker(name="raise_smart_open_exception")
     if should_raise:
         mock_s_open = Mock(side_effect=Exception("Mocked exception"))
@@ -37,7 +37,7 @@ def mock_smart_open(fake_config_yaml_content, request):
 
 
 @pytest.fixture
-def create_mocked_crawler(mock_smart_open):
+def create_mocked_crawler(mock_config_yaml_open):
     def crawler_factory() -> Crawler:
         return Crawler(
             crawl_name="test",

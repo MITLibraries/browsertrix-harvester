@@ -1,5 +1,6 @@
 """tests.test_crawler"""
 
+import json
 import os
 from unittest.mock import MagicMock, patch
 
@@ -12,17 +13,19 @@ from browsertrix_harvester.exceptions import (
 
 
 def test_crawler_config_yaml_copy_success(
-    create_mocked_crawler, mock_smart_open, fake_config_yaml_content
+    create_mocked_crawler, mock_config_yaml_open, fake_config_yaml_content
 ):
     crawler = create_mocked_crawler()
     crawler._copy_config_yaml_local()
 
     # assert input file was opened for read and output file was opened for write
-    mock_smart_open.assert_any_call(crawler.config_yaml_filepath, "rb")
-    mock_smart_open.assert_any_call(crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH, "wb")
+    mock_config_yaml_open.assert_any_call(crawler.config_yaml_filepath, "rb")
+    mock_config_yaml_open.assert_any_call(
+        crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH, "wb"
+    )
 
     # assert data written is expected data from config YAML
-    handle = mock_smart_open()
+    handle = mock_config_yaml_open()
     handle.write.assert_called_once_with(fake_config_yaml_content)
 
 
@@ -75,10 +78,7 @@ def test_crawl_remove_previous_crawl(create_mocked_crawler):
 def test_crawler_build_command(create_mocked_crawler):
     crawler = create_mocked_crawler()
 
-    # assert without sitemap_from_date
-    crawler.sitemap_from_date = None
-    command = crawler._build_subprocess_command()
-    assert set(command) == {
+    base_args = {
         # fmt: off
         "crawl",
         "--collection", crawler.crawl_name,
@@ -89,21 +89,24 @@ def test_crawler_build_command(create_mocked_crawler):
         # fmt: on
     }
 
+    # assert without sitemap_from_date
+    crawler.sitemap_from_date = None
+    command = crawler._build_subprocess_command()
+    assert set(command) == base_args
+
     # assert when sitemap_from_date is included
     from_date = "1979-01-01"
     crawler.sitemap_from_date = from_date
     command = crawler._build_subprocess_command()
-    assert set(command) == {
-        # fmt: off
-        "crawl",
-        "--collection", crawler.crawl_name,
-        "--config", crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
-        "--useSitemap",
-        "--logging", "stats",
-        "--workers", str(crawler.num_workers),
-        "--sitemapFromDate", from_date
-        # fmt: on
-    }
+    assert set(command) == base_args.union({"--sitemapFromDate", from_date})
+
+    # assert inclusion of misc btrix args JSON
+    crawler = create_mocked_crawler()
+    crawler.btrix_args_json = json.dumps({"--miscArg1": "value1", "--miscArg2": "value2"})
+    command = crawler._build_subprocess_command()
+    assert set(command) == base_args.union(
+        {"--miscArg1", "value1", "--miscArg2", "value2"}
+    )
 
 
 @pytest.mark.usefixtures("_mock_inside_container")

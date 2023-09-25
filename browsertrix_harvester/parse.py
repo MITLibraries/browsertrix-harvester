@@ -207,21 +207,29 @@ class CrawlParser:
         ) as file_obj, gzip.GzipFile(fileobj=file_obj) as decompressed_file:
             lines = decompressed_file.readlines()
 
-        # attempt to extract JSON objects from each line
+        # extract JSON object from each line
         parsed_data = []
         for bytes_line in lines:
-            str_line = bytes_line.decode("utf-8").strip()
-            try:
-                json_str = str_line.split(" ", 2)[2]
-                parsed_data.append(json.loads(json_str))
-            except (IndexError, json.JSONDecodeError):
-                continue
+            cdx_line_data = self._parse_cdx_line(bytes_line)
+            if cdx_line_data is not None:
+                parsed_data.append(cdx_line_data)
 
         # convert to dataframe and filter to text/html mimetypes
         cdx_df = pd.DataFrame(parsed_data)
         cdx_df = cdx_df[cdx_df.mime == "text/html"]
 
         return cdx_df
+
+    @staticmethod
+    def _parse_cdx_line(bytes_line: bytes) -> dict | None:
+        """Parse JSON object from CDX line."""
+        str_line = bytes_line.decode("utf-8").strip()
+        try:
+            json_str = str_line.split(" ", 2)[2]
+            return json.loads(json_str)
+        except (IndexError, json.JSONDecodeError):
+            logger.exception("error parsing CDX line")
+            return None
 
     @contextmanager
     def _get_warc_record(self, warc_filepath: str, offset: int) -> ArcWarcRecord:
@@ -338,7 +346,7 @@ class CrawlParser:
         t0 = time.time()
         row_count = len(self.websites_df)
         for i, row in enumerate(self.websites_df.itertuples(), 1):
-            if i % 100 == 0:
+            if i % 100 == 0:  # pragma: no cover
                 logger.debug(
                     "%d/%d records parsed, %.2fs", *(i, row_count, time.time() - t0)
                 )
@@ -388,7 +396,7 @@ class CrawlMetadataRecords:
 
     # ruff: noqa: D105
     def __repr__(self) -> str:
-        return f"<CrawlMetadataRecords: {len(self.df)} records>"
+        return f"<CrawlMetadataRecords: {len(self.df)} records>"  # pragma: no cover
 
     def to_xml(self) -> bytes:
         """Create an XML byte string of crawl metadata.
