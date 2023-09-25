@@ -57,6 +57,10 @@ test-crawl-homepage:
 build-docker:
 	docker build -t $(ECR_NAME_DEV):latest .
 
+# Invoke test crawl via ECS task in Dev1
+test-dev1-ecs-task:
+	bin/test-dev1-ecs-task.sh
+
 ### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
 ###   this is a Lambda repo, uncomment the FUNCTION line below  ###
 ###   and review the other commented lines in the document.     ###

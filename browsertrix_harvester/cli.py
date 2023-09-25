@@ -108,6 +108,15 @@ def parse_url_content(ctx: click.Context, wacz_filepath: str, url: str) -> None:
     type=int,
     help="Number of parallel thread workers for crawler",
 )
+@click.option(
+    "--btrix-args-json",
+    default=None,
+    required=False,
+    type=str,
+    help="JSON formatted string of additional args to pass to browsertrix-crawler, "
+    "https://github.com/webrecorder/browsertrix-crawler#crawling-configuration"
+    "-options",
+)
 @click.pass_context
 def harvest(
     ctx: click.Context,
@@ -118,6 +127,7 @@ def harvest(
     metadata_output_file: str,
     include_fulltext: bool,
     num_workers: int,
+    btrix_args_json: str,
 ) -> None:
     """Perform a web crawl and parse structured data."""
     # perform crawl
@@ -126,6 +136,7 @@ def harvest(
         config_yaml_file,
         sitemap_from_date=sitemap_from_date,
         num_workers=num_workers,
+        btrix_args_json=btrix_args_json,
     )
     crawler.crawl()
     logger.info("crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)

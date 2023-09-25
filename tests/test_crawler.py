@@ -83,9 +83,9 @@ def test_crawler_build_command(create_mocked_crawler):
         "crawl",
         "--collection", crawler.crawl_name,
         "--config", crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
-        "--workers", str(crawler.num_workers),
         "--useSitemap",
         "--logging", "stats",
+        "--workers", str(crawler.num_workers),
         # fmt: on
     ]
 
@@ -98,9 +98,9 @@ def test_crawler_build_command(create_mocked_crawler):
         "crawl",
         "--collection", crawler.crawl_name,
         "--config", crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
-        "--workers", str(crawler.num_workers),
         "--useSitemap",
         "--logging", "stats",
+        "--workers", str(crawler.num_workers),
         "--sitemapFromDate", from_date
         # fmt: on
     ]

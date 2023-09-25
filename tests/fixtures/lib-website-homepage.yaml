@@ -11,7 +11,8 @@ blockRules:
   - ".*cdn.libraries.mit.edu/media/.*"
   - "\\.(jpg|png)$"
 depth: 1
-maxPageLimit: 10
+maxPageLimit: 20
+timeout: 10
 scopeType: "domain"
 seeds:
   - url: https://libraries.mit.edu/sitemap.xml

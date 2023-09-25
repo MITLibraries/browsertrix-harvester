@@ -14,12 +14,11 @@ def require_container(func: Callable[..., ReturnType]) -> Callable[..., ReturnTy
     """Decorator for functions/methods that must be run inside the Docker container."""
 
     def wrapper(*args: Any, **kwargs: Any) -> ReturnType:
-        # TODO: re-enable after determining what files and/or env vars indicate docker
-        #   container or fargate ECS task
-        # if not (
-        #     os.path.exists("/.dockerenv") or os.getenv("DOCKER_HOST", None) is not None
-        # ):
-        #     raise RequiresContainerContextError
+        if (
+            not os.path.exists("/.dockerenv")
+            and os.getenv("AWS_EXECUTION_ENV", None) is None
+        ):
+            raise RequiresContainerContextError
         return func(*args, **kwargs)
 
     return wrapper

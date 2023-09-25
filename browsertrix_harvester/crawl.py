@@ -1,5 +1,6 @@
 """browsertrix_harvester.crawl"""
 
+import json
 import logging
 import os
 import shutil
@@ -25,11 +26,13 @@ class Crawler:
         config_yaml_filepath: str,
         sitemap_from_date: str | None = None,
         num_workers: int = 4,
+        btrix_args_json: str | None = None,
     ) -> None:
         self.crawl_name = crawl_name
         self.config_yaml_filepath = config_yaml_filepath
         self.sitemap_from_date = sitemap_from_date
         self.num_workers = num_workers
+        self.btrix_args_json = btrix_args_json
 
     @property
     def crawl_output_dir(self) -> str:
@@ -119,20 +122,41 @@ class Crawler:
             shutil.rmtree(self.crawl_output_dir)
 
     def _build_subprocess_command(self) -> list:
-        """Build subprocess command that will execute browsertrix-crawler."""
+        """Build subprocess command that will execute browsertrix-crawler.
+
+        Building the command has three tiers of overriding args, in order of use:
+        1. defined here; overrides everything
+        2. defined in YAML; overrides defaults, overriden by command line args
+        3. default to browsertrix-crawler; overriden by command line args or YAML
+
+        By adding arguments like --workers or --sitemapFromDate ONLY if they are defined
+        when instantiating this Crawler class, this allows using values present in the
+        config YAML if present there.
+        """
+        # build base command
         cmd = [
             # fmt: off
             "crawl",
             "--collection", self.crawl_name,
             "--config", self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
-            "--workers", str(self.num_workers),
             "--useSitemap",
             "--logging", "stats",
             # fmt: on
         ]
+
+        # check for explicit args from CLI
+        if self.num_workers is not None:
+            cmd.extend(["--workers", str(self.num_workers)])
         if self.sitemap_from_date is not None:
             cmd.extend(["--sitemapFromDate", self.sitemap_from_date])
+
+        # lastly, if JSON string of browsertrix arguments present, parse and apply
+        if self.btrix_args_json is not None:
+            btrix_args = json.loads(self.btrix_args_json)
+            cmd.extend([str(item) for sublist in btrix_args.items() for item in sublist])
+
         logger.info(cmd)
+
         return cmd
 
     @staticmethod
