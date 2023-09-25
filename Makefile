@@ -1,3 +1,9 @@
+### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
+###   this is a Lambda repo, uncomment the FUNCTION line below  ###
+###   and review the other commented lines in the document.     ###
+ECR_NAME_DEV:=browsertrix-harvester-dev
+ECR_URL_DEV:=222053980223.dkr.ecr.us-east-1.amazonaws.com/browsertrix-harvester-dev
+### End of Terraform-generated header                            ###
 SHELL=/bin/bash
 DATETIME:=$(shell date -u +%Y%m%dT%H%M%SZ)
 
@@ -56,14 +62,6 @@ test-crawl-homepage:
 build-docker:
 	docker build --platform linux/arm64 -t $(ECR_NAME_DEV):latest .
 
-### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
-###   this is a Lambda repo, uncomment the FUNCTION line below  ###
-###   and review the other commented lines in the document.     ###
-ECR_NAME_DEV:=browsertrix-harvester-dev
-ECR_URL_DEV:=222053980223.dkr.ecr.us-east-1.amazonaws.com/browsertrix-harvester-dev
-# FUNCTION_DEV:=
-### End of Terraform-generated header                            ###
-
 ### Terraform-generated Developer Deploy Commands for Dev environment ###
 dist-dev: ## Build docker container (intended for developer-based manual build)
 	docker build --platform linux/amd64 \
@@ -75,11 +73,6 @@ publish-dev: dist-dev ## Build, tag and push (intended for developer-based manua
 	docker login -u AWS -p $$(aws ecr get-login-password --region us-east-1) $(ECR_URL_DEV)
 	docker push $(ECR_URL_DEV):latest
 	docker push $(ECR_URL_DEV):`git describe --always`
-
-### If this is a Lambda repo, uncomment the two lines below     ###
-# update-lambda-dev: ## Updates the lambda with whatever is the most recent image in the ecr (intended for developer-based manual update)
-#	aws lambda update-function-code --function-name $(FUNCTION_DEV) --image-uri $(ECR_URL_DEV):latest
-
 
 ### Terraform-generated manual shortcuts for deploying to Stage. This requires  ###
 ###   that ECR_NAME_STAGE, ECR_URL_STAGE, and FUNCTION_STAGE environment        ###
@@ -96,7 +89,3 @@ publish-stage: ## Only use in an emergency
 	docker login -u AWS -p $$(aws ecr get-login-password --region us-east-1) $(ECR_URL_STAGE)
 	docker push $(ECR_URL_STAGE):latest
 	docker push $(ECR_URL_STAGE):`git describe --always`
-
-### If this is a Lambda repo, uncomment the two lines below     ###
-# update-lambda-stage: ## Updates the lambda with whatever is the most recent image in the ecr (intended for developer-based manual update)
-#	aws lambda update-function-code --function-name $(FUNCTION_STAGE) --image-uri $(ECR_URL_STAGE):latest
