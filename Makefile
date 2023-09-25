@@ -46,20 +46,22 @@ ruff-apply:
 shell:
 	pipenv run btrixharvest-dockerized shell
 
-test-crawl-homepage:
+# Docker commands
+build-docker:
+	docker build -t $(ECR_NAME_DEV):latest .
+
+# Test crawl commands
+# local docker container crawl
+test-crawl-local:
 	pipenv run btrixharvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
 	--num-workers 4
 
-# Docker commands
-build-docker:
-	docker build -t $(ECR_NAME_DEV):latest .
-
-# Invoke test crawl via ECS task in Dev1
-test-dev1-ecs-task:
-	bin/test-dev1-ecs-task.sh
+# remote ecs task crawl in Dev1
+test-harvest-ecs:
+	bin/test-harvest-ecs.sh
 
 ### This is the Terraform-generated header for browsertrix-harvester-dev. If  ###
 ###   this is a Lambda repo, uncomment the FUNCTION line below  ###
