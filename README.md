@@ -130,9 +130,9 @@ Options:
 #### Configuration YAML
 
 There are a couple of options for providing a file for the required `--config-yaml-file` argument:
-1. add to, or reuse files from, the local directory `browsertrix_harvester/crawl_configs`
-   2. on image rebuild, this file will be available in the container at `/btrixharvest/browsertrix_harvester/crawl_configs`
-2. provide an S3 file URI
+  * 1- add to, or reuse files from, the local directory `browsertrix_harvester/crawl_configs`
+    * on image rebuild, this file will be available in the container at `/btrixharvest/browsertrix_harvester/crawl_configs`
+  * 2- provide an S3 file URI
 
 At the time of harvest, for either local or remote files, the application copies the provided file to `/btrixharvest/crawl-config.yaml` inside the container.
 
@@ -151,30 +151,36 @@ An example record from an XML output file looks like this:
 ```xml
 <records>
     <record>
-        <url>https://libraries.mit.edu/</url>
-        <cdx_warc_filename>rec-20230925175225009669-4ae3daf80a34.warc.gz
+        <url>https://libraries.mit.edu/research-support/new-shortcut-urls/</url>
+        <cdx_warc_filename>rec-20230926164856849501-5c7776aa2137.warc.gz
         </cdx_warc_filename>
-        <cdx_title>MIT Libraries</cdx_title>
-        <cdx_offset>3485</cdx_offset>
-        <cdx_length>43952</cdx_length>
-        <og_title>MIT Libraries</og_title>
+        <cdx_title>New shortcut URLs | MIT Libraries</cdx_title>
+        <cdx_offset>63709</cdx_offset>
+        <cdx_length>38766</cdx_length>
+        <og_title>New shortcut URLs | MIT Libraries</og_title>
         <og_type>website</og_type>
         <og_image>
             https://libraries.mit.edu/app/themes/mitlib-parent/images/mit-libraries-logo-black-yellow-1200-1200.png
         </og_image>
-        <og_url>https://libraries.mit.edu/</og_url>
+        <og_url>https://libraries.mit.edu/research-support/new-shortcut-urls/</og_url>
         <og_image_type>image/png</og_image_type>
         <og_image_width>1200</og_image_width>
         <og_image_height>1200</og_image_height>
         <og_image_alt>MIT Libraries logo</og_image_alt>
         <fulltext>None</fulltext>
-        <fulltext_keywords>Keyword Title Author,Advanced search Books,Keyword Title,Title
-            Author,panel Search articles,Search,Collections Reading Room,Distinctive
-            Collections Reading,limit to Keyword,Articles,panel Search,chapters panel
-            Search,media panel Search,Search articles,chapters Articles,media
-            Articles,Event Book Wars,Books,Lewis Music,Reading Room Distinctive
+        <fulltext_keywords>home Research support,URLs Research support,Research
+            support,support New shortcut,shortcut URLs,shortcut URLs Research,link
+            work,n’t my link,URLs,shortcut,home Research,support,Research,URLs
+            Research,resources,work,URL,Database list,searchable A-Z Database,research
+            guides
         </fulltext_keywords>
-        <og_description>None</og_description>
+        <og_description>Why didn’t my link work? We have updated our shortcut URLs to a
+            new format. Most of the old URLs have changed from
+            https://libraries.mit.edu/get/resourcename to
+            https://libguides.mit.edu/resourcename. How to find the new URLs and other
+            resources To find these resources, you can locate them on our browsable,
+            filterable, and searchable A-Z Database list. To get the […]
+        </og_description>
     </record>
     ...
     ...
