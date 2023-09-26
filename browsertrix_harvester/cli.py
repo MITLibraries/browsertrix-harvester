@@ -74,7 +74,7 @@ def parse_url_content(ctx: click.Context, wacz_filepath: str, url: str) -> None:
     "--config-yaml-file",
     required=True,
     type=str,
-    help="Filepath of browsertrix config YAML present. Can be a local filepath or an S3 "
+    help="Filepath of browsertrix config YAML. Can be a local filepath or an S3 "
     "URI, e.g. s3://bucketname/crawl-config.yaml",
 )
 @click.option(
@@ -87,26 +87,26 @@ def parse_url_content(ctx: click.Context, wacz_filepath: str, url: str) -> None:
 @click.option(
     "--wacz-output-file",
     required=False,
-    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.wacz.",
-)
-@click.option(
-    "--metadata-output-file",
-    required=False,
     help="Filepath to write WACZ archive file to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.xml.",
 )
 @click.option(
+    "--metadata-output-file",
+    required=False,
+    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    "e.g. s3://bucketname/filename.wacz.",
+)
+@click.option(
     "--include-fulltext",
     is_flag=True,
-    help="Pass to include parsed fulltext from website in generated structured metadata",
+    help="Set to include parsed fulltext from website in generated structured metadata.",
 )
 @click.option(
     "--num-workers",
-    default=4,
+    default=2,
     required=False,
     type=int,
-    help="Number of parallel thread workers for crawler",
+    help="Number of parallel thread workers for crawler. [Default 2]",
 )
 @click.option(
     "--btrix-args-json",

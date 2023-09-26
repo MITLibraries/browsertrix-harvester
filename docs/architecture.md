@@ -1,5 +1,24 @@
 # browsertrix-harvester architecture
 
+This CLI application extends [Browsertrix-Crawler](https://github.com/webrecorder/browsertrix-crawler) as the base docker image, providing an Ubuntu container that has both the somewhat complex browsertrix-crawler installed and configured, and a Pipenv virtual environment for the CLI app that is exposed for use.
+
+```dockerfile
+# extend the browsertrix-crawler docker image
+FROM webrecorder/browsertrix-crawler:latest
+# ...
+# ...
+```
+
+NOTE: this is different from other python CLI apps, which generally use `python:3.11-slim` as the base image.
+
+## Web Crawls
+
+Any actions that trigger a browsertrix web crawl will not work outside of a container context.  A decorator `browsertrix_harvester.utils.require_container` has been created that can be used to decorate functions or methods that should not run outside of a container context.  This decorator looks for EITHER of the following conditions to be true:
+  * the file `/.dockerenv` exists; indicates locally running container
+  * the env var `AWS_EXECUTION_ENV` is set; indicates Fargate ECS task
+
+At this time, only the method `Crawler.crawl` has this treatment.
+
 ## Code Architecture
 
 ```mermaid
@@ -13,7 +32,8 @@ classDiagram
     class Crawler{
         crawl_name: str
         config_yaml_filepath: str
-        sitemap_from_date: str         
+        sitemap_from_date: str
+        btrix_args_json: str[JSON]
         @wacz_filepath: str
         @crawl_output_dir: str
         crawl() -> WACZ archive
@@ -59,7 +79,6 @@ flowchart LR
     output_wacz("WACZ archive file")
     output_metadata("Metadata Records XML")
     
-    
     pipenv_cmd --> cli_harvest
     output_folder -. mount .- crawls_folder
     
@@ -97,7 +116,8 @@ title: Deployed
 ---
 flowchart LR
     
-    %% host machine
+    %% aws events
+    aws_event("AWS Event")
     pipenv_cmd("Pipenv Cmd")
     
     %% docker container
@@ -112,16 +132,10 @@ flowchart LR
     output_wacz("WACZ archive file")
     output_metadata("Metadata Records XML")
     
+    aws_event --> pipenv_cmd
     
-    pipenv_cmd --> cli_harvest
-    
-    subgraph "ECS Trigger (e.g. EventBridge)" 
-        pipenv_cmd
-    end
-    
-    subgraph Docker Container 
-        btrix
-        crawls_folder
+    subgraph Docker Container
+        pipenv_cmd --> cli_harvest
         cli_harvest -->|Step 1: call| crawler
         crawler -->|Step 2: call\nvia subprocess| btrix        
         btrix -->|writes to| crawls_folder
