@@ -199,7 +199,7 @@ make build-docker
 ### Local Test Crawl
 
 ```shell
-make test-crawl-local
+make test-harvest-local
 ```
   * Performs a crawl using the config YAML `/btrixharvest/tests/fixtures/lib-website-homepage.yaml`
   * Metadata is written to `/crawls/collections/homepage/homepage.xml` in the container, which is mounted and available in the local `output/` folder 

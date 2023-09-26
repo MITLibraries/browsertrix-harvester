@@ -58,7 +58,7 @@ build-docker:
 
 # Test crawl commands
 # local docker container crawl
-test-crawl-local:
+test-harvest-local:
 	pipenv run btrixharvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
