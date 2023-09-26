@@ -92,7 +92,7 @@ def parse_url_content(ctx: click.Context, wacz_filepath: str, url: str) -> None:
 )
 @click.option(
     "--metadata-output-file",
-    required=True,
+    required=False,
     help="Filepath to write WACZ archive file to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.xml.",
 )
@@ -130,7 +130,7 @@ def harvest(
     btrix_args_json: str,
 ) -> None:
     """Perform a web crawl and parse structured data."""
-    # perform crawl
+    logger.info("preparing for harvest name: '%s'", crawl_name)
     crawler = Crawler(
         crawl_name,
         config_yaml_file,
@@ -151,12 +151,8 @@ def harvest(
 
     # parse crawl and generate metadata records
     if metadata_output_file is not None:
-        # parse crawl
         logger.info("parsing WACZ archive file")
         parser = CrawlParser(crawler.wacz_filepath)
-        logger.info("found %s websites from crawl", len(parser.websites_df))
-
-        # generate metadata records
         parser.generate_metadata(include_fulltext=include_fulltext).write(
             metadata_output_file
         )
