@@ -1,4 +1,4 @@
-"""browsertrix_harvester.cli"""
+"""harvester.cli"""
 # ruff: noqa: FBT001, ARG001
 
 import logging
@@ -9,9 +9,9 @@ from time import perf_counter
 import click
 import smart_open  # type: ignore[import]
 
-from browsertrix_harvester.config import configure_logger, configure_sentry
-from browsertrix_harvester.crawl import Crawler
-from browsertrix_harvester.parse import CrawlParser
+from harvester.config import configure_logger, configure_sentry
+from harvester.crawl import Crawler
+from harvester.parse import CrawlParser
 
 logger = logging.getLogger(__name__)
 

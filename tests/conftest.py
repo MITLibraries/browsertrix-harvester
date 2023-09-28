@@ -4,8 +4,8 @@ from unittest.mock import Mock, mock_open, patch
 import pytest
 from click.testing import CliRunner
 
-from browsertrix_harvester.crawl import Crawler
-from browsertrix_harvester.parse import CrawlParser
+from harvester.crawl import Crawler
+from harvester.parse import CrawlParser
 
 
 @pytest.fixture(autouse=True)

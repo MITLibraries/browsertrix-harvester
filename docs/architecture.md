@@ -13,7 +13,7 @@ NOTE: this is different from other python CLI apps, which generally use `python:
 
 ## Web Crawls
 
-Any actions that trigger a browsertrix web crawl will not work outside of a container context.  A decorator `browsertrix_harvester.utils.require_container` has been created that can be used to decorate functions or methods that should not run outside of a container context.  This decorator looks for EITHER of the following conditions to be true:
+Any actions that trigger a browsertrix web crawl will not work outside of a container context.  A decorator `harvester.utils.require_container` has been created that can be used to decorate functions or methods that should not run outside of a container context.  This decorator looks for EITHER of the following conditions to be true:
   * the file `/.dockerenv` exists; indicates locally running container
   * the env var `AWS_EXECUTION_ENV` is set; indicates Fargate ECS task
 

@@ -6,7 +6,7 @@ from unittest.mock import call, mock_open, patch
 import pytest
 import smart_open
 
-from browsertrix_harvester.cli import main
+from harvester.cli import main
 
 
 def test_cli_no_command_options(caplog, runner):
@@ -72,7 +72,7 @@ def test_cli_harvest_required_options_bad_yaml(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_required_options_good_yaml(caplog, runner):
-    with patch("browsertrix_harvester.crawl.Crawler.crawl"), patch.object(
+    with patch("harvester.crawl.Crawler.crawl"), patch.object(
         smart_open, "open", mock_open()
     ):
         runner.invoke(
@@ -97,7 +97,7 @@ def test_cli_harvest_required_options_good_yaml(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_write_wacz(caplog, runner):
-    with patch("browsertrix_harvester.crawl.Crawler.crawl"), patch.object(
+    with patch("harvester.crawl.Crawler.crawl"), patch.object(
         smart_open, "open", mock_open()
     ):
         runner.invoke(
@@ -121,9 +121,9 @@ def test_cli_harvest_write_wacz(caplog, runner):
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_write_metadata(caplog, runner):
     with patch(
-        "browsertrix_harvester.crawl.Crawler.crawl",
+        "harvester.crawl.Crawler.crawl",
     ), patch(
-        "browsertrix_harvester.parse.CrawlParser.generate_metadata",
+        "harvester.parse.CrawlParser.generate_metadata",
     ) as mock_generate_metadata:
         runner.invoke(
             main,

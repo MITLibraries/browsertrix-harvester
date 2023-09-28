@@ -1,11 +1,11 @@
-"""browsertrix_harvester.utils"""
+"""harvester.utils"""
 # ruff: noqa: ANN401
 
 import os
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from browsertrix_harvester.exceptions import RequiresContainerContextError
+from harvester.exceptions import RequiresContainerContextError
 
 ReturnType = TypeVar("ReturnType")
 

@@ -8,7 +8,7 @@ See [architecture docs](docs/architecture.md).
 
 ## Development
 
-**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While theoretically possible to install browsertrix-crawler on your local machine as a callable binary, this application is oriented around running only inside of a Docker container where it is already installed.  For this reason, the pipenv convenience command `btrixharvest-dockerized` has been created (more on this below).
+**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While theoretically possible to install browsertrix-crawler on your local machine as a callable binary, this application is oriented around running only inside of a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created (more on this below).
 
 ### Build Application
 
@@ -20,11 +20,11 @@ See [architecture docs](docs/architecture.md).
 - Build docker image: `make build-docker`
   - builds local image `browsertrix-harvester-dev:latest`
 - To run the app:
-  - Non-Dockerized: `pipenv run btrixharvest --help`
+  - Non-Dockerized: `pipenv run harvest --help`
     - works locally for many things, but will throw error for actions that perform crawls
-  - Dockerized: `pipenv run btrixharvest-dockerized --help`
+  - Dockerized: `pipenv run harvest-dockerized --help`
     - provides full functionality by running as a docker container
-    - points back to the pipenv command `btrixharvest` 
+    - points back to the pipenv command `harvest` 
 
 ### Testing and Linting
 
@@ -44,7 +44,7 @@ SENTRY_DSN=None# If set to a valid Sentry DSN, enables Sentry exception monitori
 
 ### Main
 ```shell
-pipenv run btrixharvest
+pipenv run harvest
 ```
 
 ```text
@@ -60,7 +60,7 @@ Commands:
 
 ### Shell environment
 ```shell
-pipenv run btrixharvest shell
+pipenv run harvest shell
 ```
 ```text
 Usage: -c shell [OPTIONS]
@@ -73,7 +73,7 @@ Options:
 
 ### Parse URL content from crawl
 ```shell
-pipenv run btrixharvest parse-url-content
+pipenv run harvest parse-url-content
 ```
 ```text
 Usage: -c parse-url-content [OPTIONS]
@@ -96,7 +96,7 @@ This is the primary command for this application.  This performs a web crawl, th
 **NOTE:** if neither `--wacz-output-file` or `--metadata-output-file` is set, a crawl will be performed, but nothing will exist outside of the container after it completes.
 
 ```shell
-pipenv run btrixharvest-dockerized harvest
+pipenv run harvest-dockerized harvest
 ```
 ```text
 Usage: -c harvest [OPTIONS]
@@ -130,11 +130,11 @@ Options:
 #### Configuration YAML
 
 There are a couple of options for providing a file for the required `--config-yaml-file` argument:
-  * 1- add to, or reuse files from, the local directory `browsertrix_harvester/crawl_configs`
-    * on image rebuild, this file will be available in the container at `/btrixharvest/browsertrix_harvester/crawl_configs`
+  * 1- add to, or reuse files from, the local directory `harvester/crawl_configs`
+    * on image rebuild, this file will be available in the container at `/browsertrix-harvest/harvester/crawl_configs`
   * 2- provide an S3 file URI
 
-At the time of harvest, for either local or remote files, the application copies the provided file to `/btrixharvest/crawl-config.yaml` inside the container.
+At the time of harvest, for either local or remote files, the application copies the provided file to `/browsertrix-harvest/crawl-config.yaml` inside the container.
 
 ## Extracted Metadata
 
@@ -201,8 +201,8 @@ make build-docker
 ```shell
 make test-harvest-local
 ```
-  * Performs a crawl using the config YAML `/btrixharvest/tests/fixtures/lib-website-homepage.yaml`
-  * Metadata is written to `/crawls/collections/homepage/homepage.xml` in the container, which is mounted and available in the local `output/` folder 
+  * Performs a crawl using the container mounted config YAML `/browsertrix-harvest/tests/fixtures/lib-website-homepage.yaml`
+  * Metadata is written to container directory `/crawls/collections/homepage/homepage.xml`, which is mounted and available in the local `output/` folder 
 
 ### Remote Test Crawl
 

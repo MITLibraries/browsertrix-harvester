@@ -1,4 +1,4 @@
-"""browsertrix_harvester.crawl"""
+"""harvester.crawl"""
 
 import json
 import logging
@@ -8,8 +8,8 @@ import subprocess
 
 import smart_open  # type: ignore[import]
 
-from browsertrix_harvester.exceptions import ConfigYamlError
-from browsertrix_harvester.utils import require_container
+from harvester.exceptions import ConfigYamlError
+from harvester.utils import require_container
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class Crawler:
     """Class that manages browsertrix crawls."""
 
-    DOCKER_CONTAINER_CONFIG_YAML_FILEPATH = "/btrixharvest/crawl-config.yaml"
+    DOCKER_CONTAINER_CONFIG_YAML_FILEPATH = "/browsertrix-harvester/crawl-config.yaml"
 
     # ruff: noqa: FBT001, FBT002
     def __init__(

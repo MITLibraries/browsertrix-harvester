@@ -1,4 +1,4 @@
-"""browsertrix_harvester.parse"""
+"""harvester.parse"""
 # ruff: noqa: N813
 
 import gzip
@@ -19,7 +19,7 @@ from warcio import ArchiveIterator  # type: ignore[import]
 from warcio.recordloader import ArcWarcRecord  # type: ignore[import]
 from yake import KeywordExtractor  # type: ignore[import]
 
-from browsertrix_harvester.exceptions import WaczFileDoesNotExist
+from harvester.exceptions import WaczFileDoesNotExist
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from browsertrix_harvester.exceptions import (
+from harvester.exceptions import (
     ConfigYamlError,
     RequiresContainerContextError,
 )

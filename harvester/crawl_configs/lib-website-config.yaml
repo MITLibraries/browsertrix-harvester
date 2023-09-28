@@ -1,0 +1,51 @@
+generateCDX: true
+generateWACZ: true
+text: true
+# prevent PAGES from getting crawled; scoping
+exclude:
+  - ".*lib.mit.edu/search/.*"
+  - ".*mit.primo.exlibrisgroup.com/.*"
+# prevent RESOURCES / ASSETS from getting retrieved; URL requests
+blockRules:
+  - ".*googlevideo.com.*"
+  - ".*cdn.pw-60-mitlib-wp-network.pantheonsite.io/media/.*"
+  - "\\.(jpg|png)$"
+depth: 1
+scopeType: "domain"
+seeds:
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/exhibits/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/exhibits/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/mithistory/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/mithistory/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/news/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/news/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/scholarly/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/scholarly/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/150books/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/150books/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/giving/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/giving/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/music-oral-history/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/music-oral-history/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/docs/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/docs/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/data-management/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/data-management/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/akdc/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/akdc/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/mit-reads/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/mit-reads/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/pomeroy/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/pomeroy/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/mit-and-slavery/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/mit-and-slavery/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/creos/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/creos/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/distinctive-collections/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/distinctive-collections/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/about/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/about/sitemap.xml
+  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/opendata/sitemap.xml
+    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/opendata/sitemap.xml

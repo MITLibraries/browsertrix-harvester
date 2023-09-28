@@ -7,8 +7,8 @@ from zipfile import ZipFile
 import pandas as pd
 import pytest
 
-from browsertrix_harvester.exceptions import WaczFileDoesNotExist
-from browsertrix_harvester.parse import CrawlMetadataRecords, CrawlParser, smart_open
+from harvester.exceptions import WaczFileDoesNotExist
+from harvester.parse import CrawlMetadataRecords, CrawlParser, smart_open
 
 
 def test_parser_as_context_manager():

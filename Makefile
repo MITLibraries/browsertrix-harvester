@@ -17,7 +17,7 @@ update: install ## Update all Python dependencies
 
 ### Test commands ###
 test: ## Run tests and print a coverage report
-	pipenv run coverage run --source=browsertrix_harvester -m pytest -vv
+	pipenv run coverage run --source=harvester -m pytest -vv
 	pipenv run coverage report -m
 
 coveralls: test
@@ -50,7 +50,7 @@ ruff-apply:
 
 # CLI commands
 shell:
-	pipenv run btrixharvest-dockerized shell
+	pipenv run harvest-dockerized shell
 
 # Docker commands
 build-docker:
@@ -59,9 +59,9 @@ build-docker:
 # Test crawl commands
 # local docker container crawl
 test-harvest-local:
-	pipenv run btrixharvest-dockerized --verbose harvest \
+	pipenv run harvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
-	--config-yaml-file="/btrixharvest/tests/fixtures/lib-website-homepage.yaml" \
+	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'
