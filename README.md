@@ -8,7 +8,7 @@ See [architecture docs](docs/architecture.md).
 
 ## Development
 
-**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While theoretically possible to install browsertrix-crawler on your local machine as a callable binary, this application is oriented around running only inside of a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created (more on this below).
+**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While theoretically possible to install browsertrix-crawler on your local machine as a callable binary, this application is oriented around running only inside of a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created.
 
 ### Build Application
 
@@ -24,6 +24,7 @@ See [architecture docs](docs/architecture.md).
     - works locally for many things, but will throw error for actions that perform crawls
   - Dockerized: `pipenv run harvest-dockerized --help`
     - provides full functionality by running as a docker container
+    - host machine `~/.aws` directory mounted into container to provide AWS credentials to container
     - points back to the pipenv command `harvest` 
 
 ### Testing and Linting
@@ -212,3 +213,19 @@ make test-harvest-ecs
   * NOTE: AWS credentials are required
   * Kicks off an ECS Fargate task in Dev1
   * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/<FILE>`
+
+## Troubleshooting
+
+### Cannot read/write from S3 for a LOCAL docker container harvest
+
+If you are seeing errors like,
+
+```text
+botocore.exceptions.NoCredentialsError: Unable to locate credentials
+```
+
+it's likely that:
+1. either the config YAML or output files are attempting to read/write from S3 
+2. the container does not have AWS credentials to work with
+
+The Pipfile command `harvest-dockerized` mounts your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.
