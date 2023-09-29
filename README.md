@@ -34,6 +34,23 @@ make test
 make lint
 ```
 
+#### Local Test Crawl
+```shell
+make test-harvest-local
+```
+
+This Make command kicks off a harvest via a local docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
+
+#### Dev1 Test Crawl
+
+```shell
+make test-harvest-ecs
+```
+
+This Make command issues an AWS CLI command to start an ECS task running effectively the same harvest as outlined above for local testing, but in the Dev1 environment as a Fargate ECS task.
+
+Looking at the script run, `bin/test-harvest-ecs.sh`, it demonstrates how output files can be S3 URIs. 
+
 ## Environment Variables
 
 ```dotenv
@@ -91,13 +108,19 @@ Options:
 ```
 
 
-### Harvesting data from a web crawl
-This is the primary command for this application.  This performs a web crawl, then optionally parses the results of that crawl into structured data and writes to a specific location. 
+### Perform web crawl and harvest data
+This is the primary command for this application.  This performs a web crawl, then optionally parses the results of that crawl into structured data and writes to a specific location.
+
+See section [Browsertrix Crawl Configuration](#browsertrix-crawl-configuration) for details about configuring the browsertrix crawl part of a harvest.
 
 **NOTE:** if neither `--wacz-output-file` or `--metadata-output-file` is set, a crawl will be performed, but nothing will exist outside of the container after it completes.
 
 ```shell
+# run harvest as local docker container
 pipenv run harvest-dockerized harvest
+
+# command used for deployed ECS task
+pipenv run harvest harvest
 ```
 ```text
 Usage: -c harvest [OPTIONS]
@@ -128,14 +151,41 @@ Options:
   -h, --help                   Show this message and exit.
 ```
     
-#### Configuration YAML
+## Browsertrix Crawl Configuration
 
-There are a couple of options for providing a file for the required `--config-yaml-file` argument:
-  * 1- add to, or reuse files from, the local directory `harvester/crawl_configs`
-    * on image rebuild, this file will be available in the container at `/browsertrix-harvest/harvester/crawl_configs`
-  * 2- provide an S3 file URI
+A layered approach is used for configuring the browsertrix crawl part:
+1. defaults defined in `Crawler` class that initialize the base crawler command
+2. configuration YAML file read and applied by the crawler
+3. runtime CLI arguments for this app that override a subset of defaults or YAML defined configurations
 
-At the time of harvest, for either local or remote files, the application copies the provided file to `/browsertrix-harvest/crawl-config.yaml` inside the container.
+Ultimately, these combine to provide the crawler configurations defined here: https://github.com/webrecorder/browsertrix-crawler#crawling-configuration-options.
+
+### Why this approach?
+
+Some arguments are required (e.g. generating CDX index, generating a WACZ archive, etc.) for this harvester to work with the crawl results and therefore set as defaults, some are complex to define as command line arguments (e.g. seeds and exclusion patterns), and some are commonly overriden at runtime (e.g. last modified date for URLs to include).
+
+It is expected that:
+  * defaults will rarely need to be overriden
+  * configuration YAML is mostly dedicated to defining seeds, exclusion patterns, and other infrequently changing configurations
+  * runtime args for this app, `--sitemap-from-date`, change frequently and are therefore better exposed in this way vs defaults or YAML values    
+
+### How to provide the configuration YAML
+
+For local testing, it's advised to put the configuration YAML in the `output/`, e.g. `output/my-test-config.yaml`.  The host machine `output` directory is mounted to `/crawls` in the container, allowing you to kick off the crawl with something like:
+
+```shell
+--config-yaml-file="/crawls/my-test-config.yaml"
+```
+
+Or, see the local harvest test in the Makefile that is utilizing a test fixture:
+```shell
+--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml"
+```
+                                                
+For deployed instances of this harvester -- e.g. invoked by the TIMDEX pipeline -- it's preferred to store the config YAML in S3 and pass that URI, e.g.:
+```shell
+--config-yaml-file="s3://timdex-extract-dev-222053980223/browsertrix-harvester-crawl-configs/library-wordpress.yaml"
+```
 
 ## Extracted Metadata
 
@@ -195,7 +245,7 @@ An example record from an XML output file looks like this:
 ```shell
 make build-docker
 ```
-  * Puilds a local docker image _without_ specifying an architecture type, making it more widely compatible for local testing
+  * Builds a local docker image _without_ specifying an architecture type, making it more widely compatible for local testing
 
 ### Local Test Crawl
 
