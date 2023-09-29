@@ -1,2 +1,2 @@
 #!/bin/sh
-pipenv run btrixharvest $@
+pipenv run harvest $@
