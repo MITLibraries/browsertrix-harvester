@@ -147,3 +147,23 @@ def test_cli_harvest_write_metadata(caplog, runner):
         assert "Parsing WACZ archive file" in caplog.text
         assert mock_generate_metadata.called
         assert "Metadata records successfully written" in caplog.text
+
+
+def test_cli_generate_metadata_records(caplog, runner):
+    with patch(
+        "harvester.parse.CrawlParser.generate_metadata",
+    ) as mock_generate_metadata:
+        _result = runner.invoke(
+            main,
+            [
+                "--verbose",
+                "generate-metadata-records",
+                "--wacz-input-file",
+                "tests/fixtures/homepage.wacz",
+                "--metadata-output-file",
+                "/tmp/records.xml",
+            ],
+        )
+    assert "parsing WACZ archive file" in caplog.text
+    assert mock_generate_metadata.called
+    assert "metadata records successfully written" in caplog.text

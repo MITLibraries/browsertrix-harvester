@@ -40,6 +40,65 @@ def shell(ctx: click.Context) -> None:
 
 @main.command()
 @click.option(
+    "--wacz-input-file",
+    required=True,
+    type=str,
+    help="Filepath to WACZ archive from crawl",
+)
+@click.option(
+    "--url",
+    required=True,
+    type=str,
+    help="Website URL to parse HTML content for",
+)
+@click.pass_context
+def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> None:
+    """Get HTML content for a single URL.
+
+    By printing the contents, this can be redirected via stdout in the calling context.
+    """
+    parser = CrawlParser(wacz_input_file)
+    html_content = parser.get_website_content_by_url(url, decode=True)
+    # ruff: noqa: T201
+    print(html_content)  # can be redirected with stdout
+
+
+@main.command()
+@click.option(
+    "--wacz-input-file",
+    required=True,
+    type=str,
+    help="Filepath to WACZ archive from crawl",
+)
+@click.option(
+    "--metadata-output-file",
+    required=False,
+    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    "e.g. s3://bucketname/filename.wacz.",
+)
+@click.option(
+    "--include-fulltext",
+    is_flag=True,
+    help="Set to include parsed fulltext from website in generated structured metadata.",
+)
+@click.pass_context
+def generate_metadata_records(
+    ctx: click.Context,
+    wacz_input_file: str,
+    metadata_output_file: str,
+    include_fulltext: bool,
+) -> None:
+    """Generate metadata records from a WACZ file."""
+    logger.info("parsing WACZ archive file")
+    parser = CrawlParser(wacz_input_file)
+    parser.generate_metadata(include_fulltext=include_fulltext).write(
+        metadata_output_file
+    )
+    logger.info("metadata records successfully written")
+
+
+@main.command()
+@click.option(
     "--config-yaml-file",
     required=True,
     type=str,

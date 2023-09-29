@@ -56,16 +56,18 @@ The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"
 ```shell
 pipenv run harvest
 ```
-
 ```text
+Usage: -c [OPTIONS] COMMAND [ARGS]...
+
 Options:
   -v, --verbose  Pass to log at debug level instead of info
   -h, --help     Show this message and exit.
 
 Commands:
-  harvest            Perform a web crawl and parse structured data.
-  parse-url-content  Get HTML content for a URL from a WACZ archive file.
-  shell              Run a bash shell inside the docker container.
+  generate-metadata-records  Generate metadata records from a WACZ file.
+  harvest                    Perform a web crawl and parse structured data.
+  parse-url-content          Get HTML content for a single URL.
+  shell                      Run a bash shell inside the docker container.
 ```
 
 ### Shell environment
@@ -80,6 +82,44 @@ Usage: -c shell [OPTIONS]
 Options:
   -h, --help            Show this message and exit.
 ```
+
+### Parse URL content from crawl
+```shell
+pipenv run harvest parse-url-content
+```
+```text
+Usage: -c parse-url-content [OPTIONS]
+
+  Get HTML content for a single URL.
+
+  By printing the contents, this can be redirected via stdout in the calling
+  context.
+
+Options:
+  --wacz-input-file TEXT  Filepath to WACZ archive from crawl  [required]
+  --url TEXT              Website URL to parse HTML content for  [required]
+  -h, --help              Show this message and exit.
+```
+
+### Generate metadata records from a WACZ file
+```shell
+pipenv run harvest generate-metadata-records
+```
+```text
+Usage: -c generate-metadata-records [OPTIONS]
+
+  Generate metadata records from a WACZ file.
+
+Options:
+  --wacz-input-file TEXT       Filepath to WACZ archive from crawl  [required]
+  --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
+                               local filepath or an S3 URI, e.g.
+                               s3://bucketname/filename.wacz.
+  --include-fulltext           Set to include parsed fulltext from website in
+                               generated structured metadata.
+  -h, --help                   Show this message and exit.
+```
+
 
 ### Perform web crawl and harvest data
 This is the primary command for this application.  This performs a web crawl, then optionally parses the results of that crawl into structured data and writes to a specific location.
