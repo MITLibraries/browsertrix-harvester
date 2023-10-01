@@ -1,0 +1,34 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "*"
+sentry-sdk = "*"
+warcio = "*"
+requests = "*"
+pandas = "*"
+bs4 = "*"
+smart-open = {version = "*", extras = ["s3"]}
+yake = "*"
+
+[dev-packages]
+black = "*"
+coverage = "*"
+coveralls = "*"
+mypy = "*"
+pytest = "*"
+ruff = "*"
+safety= "*"
+pre-commit = "*"
+ipython = "*"
+types-beautifulsoup4 = "*"
+pandas-stubs = "*"
+
+[requires]
+python_version = "3.11"
+
+[scripts]
+harvest = "python -c \"from harvester.cli import main; main()\""
+harvest-dockerized = "docker run -it -v $HOME/.aws:/root/.aws -v $PWD/output/crawls:/crawls browsertrix-harvester-dev:latest"
