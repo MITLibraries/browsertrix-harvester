@@ -17,7 +17,7 @@ See [architecture docs](docs/architecture.md).
 - To run unit tests: `make test`
 - To lint the repo: `make lint`
 - Install pre-commit hooks: `pipenv run pre-commit install`
-- Build docker image: `make build-docker`
+- Build docker image: `make dist-local`
   - builds local image `browsertrix-harvester-dev:latest`
 - To run the app:
   - Non-Dockerized: `pipenv run harvest --help`
@@ -239,13 +239,6 @@ An example record from an XML output file looks like this:
 ```
 
 ## Convenience Make Commands
-
-### Build docker image
-
-```shell
-make build-docker
-```
-  * Builds a local docker image _without_ specifying an architecture type, making it more widely compatible for local testing
 
 ### Local Test Crawl
 

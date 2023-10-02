@@ -53,5 +53,5 @@ shell:
 	pipenv run harvest-dockerized shell
 
 # Docker commands
-build-docker:
+dist-local:
 	docker build -t $(ECR_NAME_DEV):latest .
