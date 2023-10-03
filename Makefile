@@ -8,8 +8,9 @@ SHELL=/bin/bash
 DATETIME:=$(shell date -u +%Y%m%dT%H%M%SZ)
 
 ### Dependency commands ###
-install: ## Install dependencies and CLI app
+install: # install python dependencies
 	pipenv install --dev
+	pipenv run pre-commit install
 
 update: install ## Update all Python dependencies
 	pipenv clean
