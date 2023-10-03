@@ -34,14 +34,14 @@ classDiagram
         config_yaml_filepath: str
         sitemap_from_date: str
         btrix_args_json: str[JSON]
-        @wacz_filepath: str
-        @crawl_output_dir: str
+        wacz_filepath: str
+        crawl_output_dir: str
         crawl() -> WACZ archive
     }
     class CrawlParser{
         wacz_filepath: str
-        @archive: ZipFile
-        @websites_df: DataFrame
+        archive: ZipFile
+        websites_df: DataFrame
         generate_metadata() -> DataFrame        
     }
     class CrawlMetadataRecords{
