@@ -93,7 +93,7 @@ class Crawler:
     def _copy_config_yaml_local(self) -> None:
         """Download and/or copy config YAML to expected location"""
         logger.info(
-            "creating docker container copy of config YAML from: %s",
+            "Creating docker container copy of config YAML from: %s",
             self.config_yaml_filepath,
         )
         try:
@@ -105,7 +105,7 @@ class Crawler:
                 f_out.write(f_in.read())
         except Exception as e:
             logger.exception(
-                "could not open file locally or from S3: %s", self.config_yaml_filepath
+                "Could not open file locally or from S3: %s", self.config_yaml_filepath
             )
             raise ConfigYamlError from e
 
@@ -118,7 +118,7 @@ class Crawler:
         ever have one crawl per invocation.
         """
         if os.path.exists(self.crawl_output_dir):
-            logger.warning("removing pre-existing crawl at: %s", self.crawl_output_dir)
+            logger.warning("Removing pre-existing crawl at: %s", self.crawl_output_dir)
             shutil.rmtree(self.crawl_output_dir)
 
     def _build_subprocess_command(self) -> list:

@@ -25,13 +25,13 @@ def test_cli_docker_shell(caplog, runner):
         assert result.exit_code == 0
 
 
-def test_cli_harvest_missing_options(caplog, runner):
+def test_cli_harvest_missing_options_raises_error(caplog, runner):
     result = runner.invoke(main, ["--verbose", "harvest", "--crawl-name", "homepage"])
     assert "Error: Missing option '--config-yaml-file'" in result.output
 
 
 @pytest.mark.usefixtures("_mock_inside_container")
-def test_cli_harvest_required_options_bad_yaml(caplog, runner):
+def test_cli_harvest_required_options_bad_yaml_raises_error(caplog, runner):
     runner.invoke(
         main,
         [
@@ -45,7 +45,7 @@ def test_cli_harvest_required_options_bad_yaml(caplog, runner):
     )
     assert "Preparing for harvest name: 'homepage'" in caplog.text
     assert (
-        "could not open file locally or from S3: /files/does/not/exist.yaml"
+        "Could not open file locally or from S3: /files/does/not/exist.yaml"
         in caplog.text
     )
 
@@ -93,6 +93,6 @@ def test_cli_harvest_write_wacz(caplog, runner):
                 "/tmp/homepage.wacz",
             ],
         )
-        assert "writing WACZ archive to: /tmp/homepage.wacz" in caplog.text
+        assert "Writing WACZ archive to: /tmp/homepage.wacz" in caplog.text
         assert call("/tmp/homepage.wacz", "wb")
         assert call("/crawls/collections/homepage/homepage.wacz", "rb")

@@ -105,7 +105,7 @@ def harvest(
 
     # upload WACZ if output file destination provided
     if wacz_output_file:
-        logger.info("writing WACZ archive to: %s", wacz_output_file)
+        logger.info("Writing WACZ archive to: %s", wacz_output_file)
         with smart_open.open(wacz_output_file, "wb") as wacz_out, smart_open.open(
             crawler.wacz_filepath, "rb"
         ) as wacz_in:
