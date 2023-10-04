@@ -104,7 +104,7 @@ def harvest(
     logger.info("Crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)
 
     # upload WACZ if output file destination provided
-    if wacz_output_file is not None:
+    if wacz_output_file:
         logger.info("writing WACZ archive to: %s", wacz_output_file)
         with smart_open.open(wacz_output_file, "wb") as wacz_out, smart_open.open(
             crawler.wacz_filepath, "rb"
