@@ -26,9 +26,6 @@ def test_cli_docker_shell(caplog, runner):
 
 
 def test_cli_harvest_missing_options(caplog, runner):
-    result = runner.invoke(main, ["--verbose", "harvest"])
-    assert "Error: Missing option '--crawl-name'." in result.output
-
     result = runner.invoke(main, ["--verbose", "harvest", "--crawl-name", "homepage"])
     assert "Error: Missing option '--config-yaml-file'" in result.output
 

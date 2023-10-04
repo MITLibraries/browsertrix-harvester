@@ -3,7 +3,7 @@
 
 import logging
 import os
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from time import perf_counter
 
 import click
@@ -39,17 +39,18 @@ def shell(ctx: click.Context) -> None:
 
 @main.command()
 @click.option(
-    "--crawl-name",
-    required=True,
-    type=str,
-    help="Name of crawl",
-)
-@click.option(
     "--config-yaml-file",
     required=True,
     type=str,
     help="Filepath of browsertrix config YAML. Can be a local filepath or an S3 "
     "URI, e.g. s3://bucketname/crawl-config.yaml",
+)
+@click.option(
+    "--crawl-name",
+    required=False,
+    type=str,
+    default=f"crawl-{datetime.now(tz=UTC).strftime('%Y-%m-%d-%H%M%S')}",
+    help="Optional override for crawl name. [Default 'crawl-<TIMESTAMP>']",
 )
 @click.option(
     "--sitemap-from-date",

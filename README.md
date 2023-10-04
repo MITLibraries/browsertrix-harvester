@@ -109,27 +109,23 @@ Usage: -c harvest [OPTIONS]
   Perform a web crawl and parse structured data.
 
 Options:
-  --crawl-name TEXT            Name of crawl  [required]
-  --config-yaml-file TEXT      Filepath of browsertrix config YAML. Can be a
-                               local filepath or an S3 URI, e.g.
-                               s3://bucketname/crawl-config.yaml  [required]
-  --sitemap-from-date TEXT     YYYY-MM-DD string to filter websites modified
-                               after this date in sitemaps
-  --wacz-output-file TEXT      Filepath to write WACZ archive file to. Can be
-                               a local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.xml.
-  --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
-                               local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.wacz.
-  --include-fulltext           Set to include parsed fulltext from website in
-                               generated structured metadata. [Default False]
-  --num-workers INTEGER        Number of parallel thread workers for crawler.
-                               [Default 2]
-  --btrix-args-json TEXT       JSON formatted string of additional args to
-                               pass to browsertrix-crawler,
-                               https://github.com/webrecorder/browsertrix-
-                               crawler#crawling-configuration-options
-  -h, --help                   Show this message and exit.
+  --config-yaml-file TEXT   Filepath of browsertrix config YAML. Can be a
+                            local filepath or an S3 URI, e.g.
+                            s3://bucketname/crawl-config.yaml  [required]
+  --crawl-name TEXT         Optional override for crawl name. [Default
+                            'crawl-<TIMESTAMP>']
+  --sitemap-from-date TEXT  YYYY-MM-DD string to filter websites modified
+                            after this date in sitemaps
+  --wacz-output-file TEXT   Filepath to write WACZ archive file to. Can be a
+                            local filepath or an S3 URI, e.g.
+                            s3://bucketname/filename.xml.
+  --num-workers INTEGER     Number of parallel thread workers for crawler.
+                            [Default 2]
+  --btrix-args-json TEXT    JSON formatted string of additional args to pass
+                            to browsertrix-crawler,
+                            https://github.com/webrecorder/browsertrix-
+                            crawler#crawling-configuration-options
+  -h, --help                Show this message and exit.
 ```
     
 ## Browsertrix Crawl Configuration
