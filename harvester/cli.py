@@ -92,7 +92,7 @@ def harvest(
     btrix_args_json: str,
 ) -> None:
     """Perform a web crawl and parse structured data."""
-    logger.info("preparing for harvest name: '%s'", crawl_name)
+    logger.info("Preparing for harvest name: '%s'", crawl_name)
     crawler = Crawler(
         crawl_name,
         config_yaml_file,
@@ -101,7 +101,7 @@ def harvest(
         btrix_args_json=btrix_args_json,
     )
     crawler.crawl()
-    logger.info("crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)
+    logger.info("Crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)
 
     # upload WACZ if output file destination provided
     if wacz_output_file is not None:

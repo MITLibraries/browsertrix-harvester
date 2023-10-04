@@ -43,7 +43,7 @@ def test_cli_harvest_required_options_bad_yaml(caplog, runner):
             "/files/does/not/exist.yaml",
         ],
     )
-    assert "preparing for harvest name: 'homepage'" in caplog.text
+    assert "Preparing for harvest name: 'homepage'" in caplog.text
     assert (
         "could not open file locally or from S3: /files/does/not/exist.yaml"
         in caplog.text
@@ -70,7 +70,7 @@ def test_cli_harvest_required_options_good_yaml(caplog, runner):
         )
 
         assert (
-            "crawl complete, WACZ archive located at: "
+            "Crawl complete, WACZ archive located at: "
             "/crawls/collections/homepage/homepage.wacz" in caplog.text
         )
 
