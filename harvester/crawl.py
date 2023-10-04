@@ -73,18 +73,18 @@ class Crawler:
             stderr=subprocess.PIPE,
             text=True,
         ) as process:
-            if process.stdout is not None:  # pragma: no cover
+            if process.stdout:  # pragma: no cover
                 for line in process.stdout:
                     # ruff: noqa: PLW2901
                     line = line.strip()
-                    if line is not None and line != "":
+                    if line and line != "":
                         logger.debug(line)
                         stdout.append(line)
-            if process.stderr is not None:  # pragma: no cover
+            if process.stderr:  # pragma: no cover
                 for line in process.stderr:
                     # ruff: noqa: PLW2901
                     line = line.strip()
-                    if line is not None and line != "":
+                    if line and line != "":
                         logger.debug(line)
                         stderr.append(line)
             return_code = process.wait()
