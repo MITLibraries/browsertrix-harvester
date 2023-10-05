@@ -68,6 +68,7 @@ flowchart LR
     output_folder("/output/crawls")
     
     %% docker container
+    pipenv_cmd_container("Pipenv Cmd")
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
     parser("class CrawlParser")
@@ -79,7 +80,7 @@ flowchart LR
     output_wacz("WACZ archive file")
     output_metadata("Metadata Records XML")
     
-    pipenv_cmd --> cli_harvest
+    pipenv_cmd --> pipenv_cmd_container
     output_folder -. mount .- crawls_folder
     
     subgraph Host Machine
@@ -95,6 +96,7 @@ flowchart LR
     subgraph Docker Container 
         btrix
         crawls_folder
+        pipenv_cmd_container --> cli_harvest
         cli_harvest -->|Step 1: call| crawler
         crawler -->|Step 2: call\nvia subprocess| btrix        
         btrix -->|writes to| crawls_folder
@@ -104,8 +106,7 @@ flowchart LR
     end
     
     cli_harvest -->|"Step 3: write (optional)"| output_wacz
-    metadata -->|Step 5: write| output_metadata
-    
+    metadata -->|Step 5: write| output_metadata    
 ```
 
 ### Deployed

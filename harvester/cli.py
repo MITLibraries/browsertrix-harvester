@@ -74,7 +74,7 @@ def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> Non
     "--metadata-output-file",
     required=False,
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.wacz.",
+    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
 )
 @click.option(
     "--include-fulltext",
@@ -129,7 +129,7 @@ def generate_metadata_records(
     "--metadata-output-file",
     required=False,
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.wacz.  Supported file type extensions: [xml,tsv,csv].",
+    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
 )
 @click.option(
     "--include-fulltext",

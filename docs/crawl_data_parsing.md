@@ -29,11 +29,11 @@ A browsertrix web crawl generates a bunch of files as the result of the crawl:
 └── templates
 ```
 
-Note the [WACZ](https://replayweb.page/docs/wacz-format) file here, `homepage.wacz` (where "homepage" was the name of the crawl and could be different).  This file is a compressed form of the entire crawl, and is the only asset parsed by this application when generating metadata records.  This is handy for multiple reasons:
+Note the [WACZ](https://replayweb.page/docs/wacz-format) file here, `homepage.wacz` (where "homepage" is an arbitrary `--crawl-name`).  This file is a compressed form of the entire crawl, and is the only asset parsed by this application when generating metadata records.  This is handy for multiple reasons:
   * this file can be saved or copied, representing the crawl in its totality
-  * parsing data from the crawl is only concerned with a single file as the entrypoint (though multiple files are later accessed inside)
+  * parsing data from the crawl is only concerned with a single file as the entrypoint (though multiple files are later accessed inside) allowing creation of metadata records even from a remote file in S3
 
-The structure of the WACZ file is nearly identical to the uncompressed crawl results, with some additions:
+The structure of the WACZ file is nearly identical to the uncompressed crawl results, with some minor, but important, additions:
 ```text
 .
 ├── archive

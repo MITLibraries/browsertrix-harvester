@@ -8,7 +8,7 @@ See [architecture docs](docs/architecture.md).
 
 ## Development
 
-**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While theoretically possible to install browsertrix-crawler on your local machine as a callable binary, this application is oriented around running only inside of a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created.
+**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While possible to install browsertrix-crawler on your local machine, this application is oriented around running as a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created.
 
 ## Environment Variables
 
@@ -23,7 +23,6 @@ SENTRY_DSN=None# If set to a valid Sentry DSN, enables Sentry exception monitori
 - To update dependencies: `make update`
 - To run unit tests: `make test`
 - To lint the repo: `make lint`
-- Install pre-commit hooks: `pipenv run pre-commit install`
 - Build docker image: `make dist-local`
   - builds local image `browsertrix-harvester-dev:latest`
 - To run the app:
@@ -48,7 +47,7 @@ make test-harvest-local
 
 This Make command kicks off a harvest via a local docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
 
-The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine via mounted volumes at: `output/crawls/collections/homepage/homepage.xml`.
+The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepage.xml`.
 
 ## CLI commands
 
@@ -114,7 +113,8 @@ Options:
   --wacz-input-file TEXT       Filepath to WACZ archive from crawl  [required]
   --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
                                local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.wacz.
+                               s3://bucketname/filename.xml.  Supported file
+                               type extensions: [xml,tsv,csv].
   --include-fulltext           Set to include parsed fulltext from website in
                                generated structured metadata.
   -h, --help                   Show this message and exit.
@@ -168,7 +168,7 @@ Options:
     
 ## Browsertrix Crawl Configuration
 
-A layered approach is used for configuring the browsertrix crawl part:
+A layered approach is used for configuring the browsertrix web crawl part of a harvest:
 1. defaults defined in `Crawler` class that initialize the base crawler command
 2. configuration YAML file read and applied by the crawler
 3. runtime CLI arguments for this app that override a subset of defaults or YAML defined configurations
@@ -182,7 +182,7 @@ Some arguments are required (e.g. generating CDX index, generating a WACZ archiv
 It is expected that:
   * defaults will rarely need to be overriden
   * configuration YAML is mostly dedicated to defining seeds, exclusion patterns, and other infrequently changing configurations
-  * runtime args for this app, `--sitemap-from-date`, change frequently and are therefore better exposed in this way vs defaults or YAML values    
+  * runtime args for this app, e.g. `--sitemap-from-date`, change frequently and are therefore better exposed in this way vs defaults or YAML values    
 
 ### How to provide the configuration YAML
 
@@ -208,10 +208,11 @@ One of the primary value adds of this application, as opposed to just running th
 
 Metadata is extracted in the following way:
 1. the crawl is performed, and a WACZ file is saved inside the container
-2. data from the crawl is extracted into a dataframes
-3. content for each site crawled is pulled from the WARC files, and metadata is extracted from the HTML
-4. this is all combined as a final dataframe
-5. this is written locally or to S3 as an XML, TSV, or CSV file
+2. data from multiple parts of the crawl is extracted and combined into a single dataframe
+3. HTML content for each website is parsed from the WARC files
+4. metadata is extracted from that HTML content
+5. the original dataframe of websites is extended with this metadata generated from the HTML 
+6. this is written locally, or to S3, as an XML, TSV, or CSV file
 
 An example record from an XML output file looks like this:
 ```xml
