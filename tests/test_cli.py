@@ -149,6 +149,25 @@ def test_cli_harvest_write_metadata(caplog, runner):
         assert "Metadata records successfully written" in caplog.text
 
 
+def test_cli_parse_url_content_prints_html_to_stdout(caplog, runner):
+    with patch(
+        "harvester.parse.CrawlParser.get_website_content_by_url",
+    ) as mock_url_content:
+        mock_url_content.return_value = "<!DOCTYPE html><h1>Hello World!</h1></html>"
+        result = runner.invoke(
+            main,
+            [
+                "--verbose",
+                "parse-url-content",
+                "--wacz-input-file",
+                "tests/fixtures/homepage.wacz",
+                "--url",
+                "https://libraries.mit.edu/hello-world/",
+            ],
+        )
+        assert "<!DOCTYPE html>" in result.stdout
+
+
 def test_cli_generate_metadata_records(caplog, runner):
     with patch(
         "harvester.parse.CrawlParser.generate_metadata",
