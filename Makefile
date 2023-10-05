@@ -56,3 +56,12 @@ shell:
 # Docker commands
 dist-local:
 	docker build -t $(ECR_NAME_DEV):latest .
+
+# Test crawl commands
+# local docker container crawl
+test-harvest-local:
+	pipenv run harvest-dockerized --verbose harvest \
+	--crawl-name="homepage" \
+	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
+	--num-workers 4 \
+	--btrix-args-json='{"--maxPageLimit":"15"}'
