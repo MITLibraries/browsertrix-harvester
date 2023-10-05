@@ -63,5 +63,6 @@ test-harvest-local:
 	pipenv run harvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
+	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'

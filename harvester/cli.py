@@ -11,6 +11,7 @@ import smart_open  # type: ignore[import]
 
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
+from harvester.parse import CrawlParser
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,17 @@ def shell(ctx: click.Context) -> None:
     "e.g. s3://bucketname/filename.xml.",
 )
 @click.option(
+    "--metadata-output-file",
+    required=False,
+    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    "e.g. s3://bucketname/filename.wacz.  Supported file type extensions: [xml,tsv,csv].",
+)
+@click.option(
+    "--include-fulltext",
+    is_flag=True,
+    help="Set to include parsed fulltext from website in generated structured metadata.",
+)
+@click.option(
     "--num-workers",
     default=2,
     required=False,
@@ -88,10 +100,20 @@ def harvest(
     config_yaml_file: str,
     sitemap_from_date: str,
     wacz_output_file: str,
+    metadata_output_file: str,
+    include_fulltext: bool,
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
     """Perform a web crawl and parse structured data."""
+    if not wacz_output_file and not metadata_output_file:
+        msg = (
+            "One or both of arguments --wacz-output-file and --metadata-output-file "
+            "must be set.  Exiting without performing a crawl."
+        )
+        logger.error(msg)
+        return
+
     logger.info("Preparing for harvest name: '%s'", crawl_name)
     crawler = Crawler(
         crawl_name,
@@ -110,6 +132,15 @@ def harvest(
             crawler.wacz_filepath, "rb"
         ) as wacz_in:
             wacz_out.write(wacz_in.read())
+
+    # parse crawl and generate metadata records
+    if metadata_output_file:
+        logger.info("Parsing WACZ archive file")
+        parser = CrawlParser(crawler.wacz_filepath)
+        parser.generate_metadata(include_fulltext=include_fulltext).write(
+            metadata_output_file
+        )
+        logger.info("Metadata records successfully written")
 
     elapsed_time = perf_counter() - ctx.obj["START_TIME"]
     logger.info(
