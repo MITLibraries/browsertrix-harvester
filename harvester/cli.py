@@ -55,12 +55,19 @@ def shell(ctx: click.Context) -> None:
 def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> None:
     """Get HTML content for a single URL.
 
-    By printing the contents, this can be redirected via stdout in the calling context.
+    This CLI command extracts the fully rendered content of a specific URL from a web
+    crawl WACZ file. By printing/echoing the contents, this can be redirected via stdout
+    in the calling context.
     """
+    # set logging level to ERROR to keep stdout clear of logging
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.ERROR)
+
+    # parse crawled content for URL
     parser = CrawlParser(wacz_input_file)
     html_content = parser.get_website_content_by_url(url, decode=True)
-    # ruff: noqa: T201
-    print(html_content)  # can be redirected with stdout
+
+    click.echo(html_content)
 
 
 @main.command()
@@ -88,7 +95,13 @@ def generate_metadata_records(
     metadata_output_file: str,
     include_fulltext: bool,
 ) -> None:
-    """Generate metadata records from a WACZ file."""
+    """Generate metadata records from a completed web crawl.
+
+    This is a convenience CLI command.  Most commonly, the command 'harvest' will be used
+    that performs a web crawl and generates metadata records from that crawl as under the
+    umbrella of a single command.  This CLI command would be useful if a crawl is already
+    completed (a WACZ file exists) and only the generation of metadata records is needed.
+    """
     logger.info("parsing WACZ archive file")
     parser = CrawlParser(wacz_input_file)
     parser.generate_metadata(include_fulltext=include_fulltext).write(
@@ -164,7 +177,7 @@ def harvest(
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
-    """Perform a web crawl and parse structured data."""
+    """Perform a web crawl and generate metadata records from that crawl."""
     if not wacz_output_file and not metadata_output_file:
         msg = (
             "One or both of arguments --wacz-output-file and --metadata-output-file "

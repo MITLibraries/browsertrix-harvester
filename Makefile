@@ -57,8 +57,7 @@ shell:
 dist-local:
 	docker build -t $(ECR_NAME_DEV):latest .
 
-# Test crawl commands
-# local docker container crawl
+# Testing commands
 test-harvest-local:
 	pipenv run harvest-dockerized --verbose harvest \
 	--crawl-name="homepage" \
@@ -66,3 +65,8 @@ test-harvest-local:
 	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'
+
+test-parse-url-content:
+	pipenv run harvest parse-url-content \
+	--wacz-input-file="tests/fixtures/example.wacz" \
+	--url="https://example.com/hello-world"

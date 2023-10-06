@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from harvester.crawl import Crawler
+from harvester.exceptions import WaczFileDoesNotExist
 from harvester.parse import CrawlParser
 
 
@@ -62,3 +63,30 @@ def _mock_inside_container():
 @pytest.fixture
 def mocked_parser():
     return CrawlParser("tests/fixtures/homepage.wacz")
+
+
+@pytest.fixture
+def _mock_wacz_file_exists(create_mocked_crawler):
+    """Mock True for os.path.exists of the WACZ file from a successful crawl."""
+    crawler = create_mocked_crawler()
+    original_exists = os.path.exists
+
+    def wacz_file_exists(path):
+        if path == crawler.wacz_filepath:
+            return True
+        return original_exists(path)
+
+    with patch("os.path.exists", side_effect=wacz_file_exists):
+        yield
+
+
+@pytest.fixture
+def _mock_missing_all_wacz_archive_files():
+    def always_raise_wacz_file_not_exists(_filepath):
+        raise WaczFileDoesNotExist
+
+    with patch(
+        "harvester.parse.CrawlParser._get_archive_file_obj",
+        side_effect=always_raise_wacz_file_not_exists,
+    ):
+        yield

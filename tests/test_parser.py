@@ -25,16 +25,18 @@ def test_parser_loads_wacz_archive(mocked_parser):
     isinstance(mocked_parser.archive, ZipFile)
 
 
-def test_parser_loads_wacz_archive_missing_files(mocked_parser):
-    parser = CrawlParser("tests/fixtures/missing_files.wacz")
-    with pytest.raises(WaczFileDoesNotExist):
-        _ = parser.archive
-
-
 def test_parser_build_websites_dataframe_success(mocked_parser):
     df = mocked_parser.websites_df
     assert isinstance(df, pd.DataFrame)
     assert len(df) == 13
+
+
+@pytest.mark.usefixtures("_mock_missing_all_wacz_archive_files")
+def test_parser_build_websites_dataframe_fails(mocked_parser, caplog):
+    with pytest.raises(WaczFileDoesNotExist):
+        _df = mocked_parser.websites_df
+    assert "pages file was not found in WACZ file: pages/pages.jsonl." in caplog.text
+    assert "pages file was not found in WACZ file: pages/extraPages.jsonl." in caplog.text
 
 
 def test_parser_lazy_loads(mocked_parser):

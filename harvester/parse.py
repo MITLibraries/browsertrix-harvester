@@ -39,7 +39,7 @@ class CrawlParser:
     """
 
     # WACZ archive filepaths
-    EXTRA_PAGES_FILEPATH = "pages/extraPages.jsonl"
+    PAGES_FILEPATHS = ("pages/pages.jsonl", "pages/extraPages.jsonl")
     CDX_INDEX_FILEPATH = "indexes/index.cdx.gz"
     WARC_DIR = "archive"
 
@@ -121,17 +121,6 @@ class CrawlParser:
         if self._archive is None:
             with smart_open.open(self.wacz_filepath, "rb") as file_obj:
                 _archive = zipfile.ZipFile(io.BytesIO(file_obj.read()))
-
-                # check for required files that could be missing from an incomplete crawl
-                missing_files = {
-                    self.EXTRA_PAGES_FILEPATH,
-                    self.CDX_INDEX_FILEPATH,
-                }.difference(set(_archive.namelist()))
-                if len(missing_files) > 0:
-                    msg = f"missing files: {list(missing_files)}"
-                    # ruff: noqa: TRY003
-                    raise WaczFileDoesNotExist(msg)
-
                 self._archive = _archive
         return self._archive
 
@@ -144,7 +133,7 @@ class CrawlParser:
         """
         if self._websites_df is None:
             # load extra pages and CDX as dataframes
-            extra_pages_df = self._get_extra_pages_df()
+            extra_pages_df = self._get_pages_df()
             cdx_df = self._get_cdx_df()
 
             # merge dataframes
@@ -187,18 +176,38 @@ class CrawlParser:
         except KeyError as exc:
             raise WaczFileDoesNotExist from exc
 
-    def _get_extra_pages_df(self) -> pd.DataFrame:
-        with self._get_archive_file_obj(self.EXTRA_PAGES_FILEPATH) as file_obj:
-            file_obj.readline()  # skip first line
-            extra_pages_df = pd.read_json(file_obj, lines=True)
+    def _get_pages_df(self) -> pd.DataFrame:
+        """Generate dataframe of websites from /pages files in WACZ.
 
-            # filter out sitemap.html sites
-            extra_pages_df = extra_pages_df[
-                ~extra_pages_df.url.str.endswith("sitemap.html")
-            ]
+        A WACZ file contains a directory /pages where a 'pages.json' file ALWAYS exists,
+        and an extraPages.jsonl file MAY exist.  These files contain a handy list of URLs
+        that were crawled, including fulltext from the page (without any HTML tags).  This
+        list of URLs is used as the canonical list of URLs to include when generating
+        metadata records.
+        """
+        all_pages_dfs = []
+        for pages_file in self.PAGES_FILEPATHS:
+            try:
+                with self._get_archive_file_obj(pages_file) as file_obj:
+                    file_obj.readline()  # skip first line
+                    pages_df = pd.read_json(file_obj, lines=True)
 
-            # ruff: noqa: RET504
-            return extra_pages_df
+                    # filter out sitemap related pages
+                    pages_df = pages_df[~pages_df.url.str.endswith("sitemap.html")]
+                    pages_df = pages_df[~pages_df.url.str.endswith("sitemap.xml")]
+
+                    # append to list of dataframes
+                    all_pages_dfs.append(pages_df)
+
+            except WaczFileDoesNotExist:
+                msg = f"A pages file was not found in WACZ file: {pages_file}."
+                logger.warning(msg)
+
+        if not all_pages_dfs:
+            msg = "Both pages.jsonl and extraPages.jsonl appear missing from WACZ file"
+            raise WaczFileDoesNotExist(msg)
+
+        return pd.concat(all_pages_dfs)
 
     def _get_cdx_df(self) -> pd.DataFrame:
         """Create DataFrame from CDX index data."""
@@ -218,6 +227,7 @@ class CrawlParser:
         cdx_df = pd.DataFrame(parsed_data)
         cdx_df = cdx_df[cdx_df.mime == "text/html"]
 
+        # ruff: noqa: RET504
         return cdx_df
 
     @staticmethod
@@ -299,6 +309,7 @@ class CrawlParser:
         fulltext = fulltext.replace("\n", " ")
         fulltext = fulltext.replace("\r", " ")
         fulltext = fulltext.replace("\t", " ")
+        # ruff: noqa: RET504
         return fulltext
 
     def _parse_fulltext_keywords(self, fulltext: str) -> str:
@@ -414,8 +425,7 @@ class CrawlMetadataRecords:
                 cell = etree.Element(col)
                 cell.text = str(row[col])
                 item.append(cell)
-        xml_bytes = etree.tostring(root, encoding="utf-8", method="xml")
-        return xml_bytes
+        return etree.tostring(root, encoding="utf-8", method="xml")
 
     def write(self, filepath: str) -> None:
         """Write metadata records in various formats.

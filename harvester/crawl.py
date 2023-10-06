@@ -8,7 +8,7 @@ import subprocess
 
 import smart_open  # type: ignore[import]
 
-from harvester.exceptions import ConfigYamlError
+from harvester.exceptions import ConfigYamlError, WaczFileDoesNotExist
 from harvester.utils import require_container
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,12 @@ class Crawler:
                         logger.debug(line)
                         stderr.append(line)
             return_code = process.wait()
+
+        # raise exception if WACZ file not found from crawl
+        if not os.path.exists(self.wacz_filepath):
+            msg = f"WACZ file not found at expected path: {self.wacz_filepath}"
+            raise WaczFileDoesNotExist(msg)
+
         return return_code, stdout, stderr
 
     def _copy_config_yaml_local(self) -> None:
