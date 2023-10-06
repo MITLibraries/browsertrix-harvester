@@ -149,13 +149,13 @@ class Crawler:
         }
 
         # apply common arguments as standalone CLI arguments
-        if self.num_workers is not None:
+        if self.num_workers:
             btrix_args["--workers"] = str(self.num_workers)
-        if self.sitemap_from_date is not None:
+        if self.sitemap_from_date:
             btrix_args["--sitemapFromDate"] = self.sitemap_from_date
 
         # lastly, if JSON string of btrix args provided, parse and apply
-        if self.btrix_args_json is not None:
+        if self.btrix_args_json:
             btrix_additional_args = json.loads(self.btrix_args_json)
             for arg_name, arg_value in btrix_additional_args.items():
                 btrix_args[arg_name] = str(arg_value)

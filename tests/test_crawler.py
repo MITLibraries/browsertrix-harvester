@@ -46,7 +46,7 @@ def test_crawler_properties(create_mocked_crawler):
 
 
 def test_crawler_env_var_manipulation(create_mocked_crawler):
-    assert os.getenv("VIRTUAL_ENV", None) is not None
+    assert os.getenv("VIRTUAL_ENV", None)
     crawler = create_mocked_crawler()
     # ruff: noqa: SLF001
     env_vars = crawler._get_subprocess_env_vars()

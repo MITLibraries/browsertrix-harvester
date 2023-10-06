@@ -56,7 +56,7 @@ The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"
 pipenv run harvest
 ```
 ```text
-Usage: -c [OPTIONS] COMMAND [ARGS]...
+UUsage: -c [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -v, --verbose  Pass to log at debug level instead of info
@@ -64,8 +64,8 @@ Options:
 
 Commands:
   generate-metadata-records  Generate metadata records from a WACZ file.
-  harvest                    Perform a web crawl and parse structured data.
-  parse-url-content          Get HTML content for a single URL.
+  harvest                    Perform a crawl and generate metadata...
+  parse-url-content          Get HTML content for a single URL from a...
   shell                      Run a bash shell inside the docker container.
 ```
 
@@ -79,7 +79,7 @@ Usage: -c shell [OPTIONS]
   Run a bash shell inside the docker container.
 
 Options:
-  -h, --help            Show this message and exit.
+  -h, --help  Show this message and exit.
 ```
 
 ### Parse URL content from crawl
@@ -89,10 +89,11 @@ pipenv run harvest parse-url-content
 ```text
 Usage: -c parse-url-content [OPTIONS]
 
-  Get HTML content for a single URL.
+  Get HTML content for a single URL from a WACZ file.
 
-  By printing the contents, this can be redirected via stdout in the calling
-  context.
+  This CLI command extracts the fully rendered content of a specific URL from
+  a web crawl WACZ file. By printing/echoing the contents, this can be
+  redirected via stdout in the calling context.
 
 Options:
   --wacz-input-file TEXT  Filepath to WACZ archive from crawl  [required]
@@ -108,6 +109,12 @@ pipenv run harvest generate-metadata-records
 Usage: -c generate-metadata-records [OPTIONS]
 
   Generate metadata records from a WACZ file.
+
+  This is a convenience CLI command.  Most commonly, the command 'harvest'
+  will be used that performs a web crawl and generates metadata records from
+  that crawl as under the umbrella of a single command.  This CLI command
+  would be useful if a crawl is already completed (a WACZ file exists) and
+  only the generation of metadata records is needed.
 
 Options:
   --wacz-input-file TEXT       Filepath to WACZ archive from crawl  [required]
@@ -126,7 +133,7 @@ This is the primary command for this application.  This performs a web crawl, th
 
 See section [Browsertrix Crawl Configuration](#browsertrix-crawl-configuration) for details about configuring the browsertrix crawl part of a harvest.
 
-**NOTE:** if neither `--wacz-output-file` or `--metadata-output-file` is set, a crawl will be performed, but nothing will exist outside of the container after it completes.
+**NOTE:** if _neither_ `--wacz-output-file` or `--metadata-output-file` is set, an error will be logged and the application will exit before a crawl is performed as there would be no output.
 
 ```shell
 # run harvest as local docker container
@@ -138,7 +145,7 @@ pipenv run harvest harvest
 ```text
 Usage: -c harvest [OPTIONS]
 
-  Perform a web crawl and parse structured data.
+  Perform a crawl and generate metadata records from the resulting WACZ file.
 
 Options:
   --config-yaml-file TEXT      Filepath of browsertrix config YAML. Can be a
@@ -202,17 +209,17 @@ For deployed instances of this harvester -- e.g. invoked by the TIMDEX pipeline 
 --config-yaml-file="s3://timdex-extract-dev-222053980223/browsertrix-harvester-crawl-configs/library-wordpress.yaml"
 ```
 
-## Extracted Metadata
+## Extract Metadata Records
 
-One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata for each website crawled.  This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `.xml`, `.tsv`, or `.csv` -- dictates the output file type.
+One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata records for websites crawled.  This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `.xml`, `.tsv`, or `.csv` -- dictates the output file type.
 
 Metadata is extracted in the following way:
 1. the crawl is performed, and a WACZ file is saved inside the container
 2. data from multiple parts of the crawl is extracted and combined into a single dataframe
 3. HTML content for each website is parsed from the WARC files
-4. metadata is extracted from that HTML content
-5. the original dataframe of websites is extended with this metadata generated from the HTML 
-6. this is written locally, or to S3, as an XML, TSV, or CSV file
+4. additional metadata is extracted from that HTML content
+5. the original dataframe of websites is extended with this additional metadata generated from the HTML 
+6. lastly, this is written locally, or to S3, as an XML, TSV, or CSV file
 
 An example record from an XML output file looks like this:
 ```xml

@@ -38,19 +38,25 @@ classDiagram
         crawl_output_dir: str
         crawl() -> WACZ archive
     }
-    class CrawlParser{
+    class CrawlMetadataParser{
         wacz_filepath: str
-        archive: ZipFile
-        websites_df: DataFrame
         generate_metadata() -> DataFrame        
+    }
+    class WACZClient{
+        wacz_filepath: str
+        wacz_archive: ZipFile
+        html_websites_df: DataFrame
+        get_website_content() -> bytes|str
+        get_website_content_by_url() -> bytes|str
     }
     class CrawlMetadataRecords{
         df: DataFrame
         write() -> File
     }
     Crawler <|-- Cli
-    CrawlParser <|-- Cli
-    CrawlMetadataRecords <|-- CrawlParser
+    CrawlMetadataParser <|-- Cli
+    WACZClient <|-- CrawlMetadataParser
+    CrawlMetadataRecords <|-- CrawlMetadataParser
     
 ```
 
@@ -71,7 +77,7 @@ flowchart LR
     pipenv_cmd_container("Pipenv Cmd")
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlParser")
+    parser("class CrawlMetadataParser")
     metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
@@ -124,7 +130,7 @@ flowchart LR
     %% docker container
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlParser")
+    parser("class CrawlMetadataParser")
     metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")

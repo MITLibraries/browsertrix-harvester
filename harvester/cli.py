@@ -11,7 +11,8 @@ import smart_open  # type: ignore[import]
 
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
-from harvester.parse import CrawlParser
+from harvester.metadata import CrawlMetadataParser
+from harvester.wacz import WACZClient
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ def shell(ctx: click.Context) -> None:
 )
 @click.pass_context
 def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> None:
-    """Get HTML content for a single URL.
+    """Get HTML content for a single URL from a WACZ file.
 
     This CLI command extracts the fully rendered content of a specific URL from a web
     crawl WACZ file. By printing/echoing the contents, this can be redirected via stdout
@@ -64,8 +65,8 @@ def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> Non
     root_logger.setLevel(logging.ERROR)
 
     # parse crawled content for URL
-    parser = CrawlParser(wacz_input_file)
-    html_content = parser.get_website_content_by_url(url, decode=True)
+    with WACZClient(wacz_input_file) as wacz_client:
+        html_content = wacz_client.get_website_content_by_url(url, decode=True)
 
     click.echo(html_content)
 
@@ -95,19 +96,19 @@ def generate_metadata_records(
     metadata_output_file: str,
     include_fulltext: bool,
 ) -> None:
-    """Generate metadata records from a completed web crawl.
+    """Generate metadata records from a WACZ file.
 
     This is a convenience CLI command.  Most commonly, the command 'harvest' will be used
     that performs a web crawl and generates metadata records from that crawl as under the
     umbrella of a single command.  This CLI command would be useful if a crawl is already
     completed (a WACZ file exists) and only the generation of metadata records is needed.
     """
-    logger.info("parsing WACZ archive file")
-    parser = CrawlParser(wacz_input_file)
+    logger.info("Parsing WACZ archive file")
+    parser = CrawlMetadataParser(wacz_input_file)
     parser.generate_metadata(include_fulltext=include_fulltext).write(
         metadata_output_file
     )
-    logger.info("metadata records successfully written")
+    logger.info("Metadata records successfully written")
 
 
 @main.command()
@@ -177,7 +178,7 @@ def harvest(
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
-    """Perform a web crawl and generate metadata records from that crawl."""
+    """Perform a crawl and generate metadata records from the resulting WACZ file."""
     if not wacz_output_file and not metadata_output_file:
         msg = (
             "One or both of arguments --wacz-output-file and --metadata-output-file "
@@ -208,7 +209,7 @@ def harvest(
     # parse crawl and generate metadata records
     if metadata_output_file:
         logger.info("Parsing WACZ archive file")
-        parser = CrawlParser(crawler.wacz_filepath)
+        parser = CrawlMetadataParser(crawler.wacz_filepath)
         parser.generate_metadata(include_fulltext=include_fulltext).write(
             metadata_output_file
         )

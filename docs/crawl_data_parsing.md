@@ -1,6 +1,6 @@
 # Crawl Data Parsing
 
-As mentioned in the [project README](../README.md), one thing that sets this application apart from just a web crawl is the parsing of metadata records that represent the websites crawled.  This is the work of the `harvester.parse.CrawlParser` class.
+As mentioned in the [project README](../README.md), one thing that sets this application apart from just a web crawl is the parsing of metadata records that represent the websites crawled.  This is the work of the `harvester.parse.CrawlMetadataParser` class.
 
 ## What crawled sites are included as metadata records?
 
@@ -59,7 +59,7 @@ The structure of the WACZ file is nearly identical to the uncompressed crawl res
     └── pages.jsonl
 ```
 
-The WACZ files `pages/pages.jsonl` and `pages/extraPages.jsonl` are what create the canonical list of websites to be considered for metadata records.  While a web crawl may make hundreds of HTTP requests to gather Javascript, CSS, JSON, or any other supporting files, what we are most interested in are pages (websites) that were directly included as seeds or discovered via the crawl configurations.
+The WACZ files `pages/pages.jsonl` and `pages/extraPages.jsonl` are what create the canonical list of websites to be considered for metadata records.  While a web crawl may make hundreds of HTTP requests to gather Javascript, CSS, JSON, or any other supporting files, what we are most interested in are HTML pages (websites) that were directly included as seeds or discovered via the crawl configurations.
 
 While these JSONL files provide a canonical list of URLs that metadata records will be generated for, they don't provide all the required data for those records.  See more about that [below](#how-are-metadata-records-created).
 
@@ -77,7 +77,7 @@ Metadata records are created from multiple parts of the crawl:
   * WARC files
     * actual binary content for each HTTP request, i.e. the fully rendered HTML for a website
 
-The `CrawlParser` uses all these when building a dataframe of metadata records, roughly following this flow:
+The `CrawlMetadataParser` uses all these when building a dataframe of metadata records, roughly following this flow:
 
 1. get list of URLs from `pages.jsonl` and `extraPages.jsonl`
 2. get other metadata and associated WARC files for those URLs from the CDX index
@@ -90,7 +90,7 @@ The end result is a dataframe of metadata about pages crawled.  As of this writi
 
 Yes, very!
 
-This application was designed to support the crawling of the MIT Libraries WordPress sites.  As such, the `CrawlParser` has class properties that define what HTML tags contain metadata about the page and include this in the final output.  While some of the generated metadata fields are agnostic to the source or even the HTML itself -- e.g. URL, mimetype, etc. -- other metadata properties like `og_description` are derived from very specific HTML tags that may not be present on non-library websites.  
+This application was designed to support the crawling of the MIT Libraries WordPress sites.  As such, the `CrawlMetadataParser` has class properties that define what HTML tags contain metadata about the page and include this in the final output.  While some of the generated metadata fields are agnostic to the source or even the HTML itself -- e.g. URL, mimetype, etc. -- other metadata properties like `og_description` are derived from very specific HTML tags that may not be present on non-library websites.  
 
 In the event this application needs to be extended to crawl other websites, and generate metadata records about those pages, this class will need to be reworked to provide a mapping of HTML elements to metadata properties.
  

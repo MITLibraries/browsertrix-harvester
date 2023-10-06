@@ -6,7 +6,8 @@ from click.testing import CliRunner
 
 from harvester.crawl import Crawler
 from harvester.exceptions import WaczFileDoesNotExist
-from harvester.parse import CrawlParser
+from harvester.metadata import CrawlMetadataParser
+from harvester.wacz import WACZClient
 
 
 @pytest.fixture(autouse=True)
@@ -61,8 +62,14 @@ def _mock_inside_container():
 
 
 @pytest.fixture
-def mocked_parser():
-    return CrawlParser("tests/fixtures/homepage.wacz")
+def mocked_parser() -> CrawlMetadataParser:
+    return CrawlMetadataParser("tests/fixtures/homepage.wacz")
+
+
+@pytest.fixture
+def mocked_wacz_client() -> WACZClient:
+    with WACZClient("tests/fixtures/homepage.wacz") as wacz_client:
+        yield wacz_client
 
 
 @pytest.fixture
@@ -86,7 +93,7 @@ def _mock_missing_all_wacz_archive_files():
         raise WaczFileDoesNotExist
 
     with patch(
-        "harvester.parse.CrawlParser._get_archive_file_obj",
+        "harvester.wacz.WACZClient._get_archive_file_obj",
         side_effect=always_raise_wacz_file_not_exists,
     ):
         yield

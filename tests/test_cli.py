@@ -129,7 +129,7 @@ def test_cli_harvest_write_metadata(caplog, runner):
     with patch(
         "harvester.crawl.Crawler.crawl",
     ), patch(
-        "harvester.parse.CrawlParser.generate_metadata",
+        "harvester.metadata.CrawlMetadataParser.generate_metadata",
     ) as mock_generate_metadata:
         runner.invoke(
             main,
@@ -151,7 +151,7 @@ def test_cli_harvest_write_metadata(caplog, runner):
 
 def test_cli_parse_url_content_prints_html_to_stdout(caplog, runner):
     with patch(
-        "harvester.parse.CrawlParser.get_website_content_by_url",
+        "harvester.wacz.WACZClient.get_website_content_by_url",
     ) as mock_url_content:
         mock_url_content.return_value = "<!DOCTYPE html><h1>Hello World!</h1></html>"
         result = runner.invoke(
@@ -170,7 +170,7 @@ def test_cli_parse_url_content_prints_html_to_stdout(caplog, runner):
 
 def test_cli_generate_metadata_records(caplog, runner):
     with patch(
-        "harvester.parse.CrawlParser.generate_metadata",
+        "harvester.metadata.CrawlMetadataParser.generate_metadata",
     ) as mock_generate_metadata:
         _result = runner.invoke(
             main,
@@ -183,6 +183,6 @@ def test_cli_generate_metadata_records(caplog, runner):
                 "/tmp/records.xml",
             ],
         )
-    assert "parsing WACZ archive file" in caplog.text
+    assert "Parsing WACZ archive file" in caplog.text
     assert mock_generate_metadata.called
-    assert "metadata records successfully written" in caplog.text
+    assert "Metadata records successfully written" in caplog.text
