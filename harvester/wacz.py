@@ -86,23 +86,23 @@ class WACZClient:
         exception if not operating in a context manager context.
         """
         if not self._via_context_manager:
-            msg = (
+            message = (
                 "Please use this class via a context manager for operations that read "
                 "the WACZ file"
             )
-            raise ContextManagerRequiredError(msg)
+            raise ContextManagerRequiredError(message)
         if self._wacz_archive is None:
             with smart_open.open(self.wacz_filepath, "rb") as file_obj:
                 _wacz_archive = zipfile.ZipFile(io.BytesIO(file_obj.read()))
                 self._wacz_archive = _wacz_archive
         return self._wacz_archive
 
-    def _get_archive_file_obj(self, archive_filepath: str) -> IO[bytes]:
+    def _get_archive_file_object(self, archive_filepath: str) -> IO[bytes]:
         """Return a file-like object for a filepath in the WACZ ZipFile."""
         try:
             return self.wacz_archive.open(archive_filepath)
-        except KeyError as exc:
-            raise WaczFileDoesNotExist from exc
+        except KeyError as e:
+            raise WaczFileDoesNotExist from e
 
     def _get_pages_df(self) -> pd.DataFrame:
         """Generate dataframe of data from WACZ '/pages' files.
@@ -117,7 +117,7 @@ class WACZClient:
         all_pages_dfs = []
         for pages_file in self.PAGES_FILEPATHS:
             try:
-                with self._get_archive_file_obj(pages_file) as file_obj:
+                with self._get_archive_file_object(pages_file) as file_obj:
                     file_obj.readline()  # skip first line
                     pages_df = pd.read_json(file_obj, lines=True)
 
@@ -129,12 +129,14 @@ class WACZClient:
                     all_pages_dfs.append(pages_df)
 
             except WaczFileDoesNotExist:
-                msg = f"A pages file was not found in WACZ file: {pages_file}."
-                logger.debug(msg)
+                message = f"A pages file was not found in WACZ file: {pages_file}."
+                logger.debug(message)
 
         if not all_pages_dfs:
-            msg = "Both pages.jsonl and extraPages.jsonl appear missing from WACZ file"
-            raise WaczFileDoesNotExist(msg)
+            message = (
+                "Both pages.jsonl and extraPages.jsonl appear missing from WACZ file"
+            )
+            raise WaczFileDoesNotExist(message)
 
         return pd.concat(all_pages_dfs)
 
@@ -145,9 +147,9 @@ class WACZClient:
         like status codes, mimetypes, and specific length and offsets where request
         response can be found in the '/archive' WARC files.
         """
-        with self._get_archive_file_obj(
+        with self._get_archive_file_object(
             self.CDX_INDEX_FILEPATH
-        ) as file_obj, gzip.GzipFile(fileobj=file_obj) as decompressed_file:
+        ) as file_object, gzip.GzipFile(fileobj=file_object) as decompressed_file:
             lines = decompressed_file.readlines()
 
         # extract JSON object from each line
@@ -228,7 +230,7 @@ class WACZClient:
         library takes it from there, understanding where in the WARC file the record ends,
         and providing a handy reader of the actual data.
         """
-        with self._get_archive_file_obj(warc_filepath) as file_obj:
+        with self._get_archive_file_object(warc_filepath) as file_obj:
             file_obj.seek(offset)
             record = next(ArchiveIterator(file_obj))
             yield record
@@ -268,6 +270,6 @@ class WACZClient:
         if len(rows) == 1:
             row = rows.iloc[0]
         else:
-            exc_msg = f"Could not find url in CDX index: {url}"
-            raise FileNotFoundError(exc_msg)
+            message = f"Could not find url in CDX index: {url}"
+            raise FileNotFoundError(message)
         return self.get_website_content(row.filename, row.offset, decode=decode)

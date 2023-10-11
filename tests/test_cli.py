@@ -19,8 +19,9 @@ def test_cli_no_command_options(caplog, runner):
 
 
 def test_cli_docker_shell(caplog, runner):
-    with patch("os.system") as mock_system:
-        result = runner.invoke(main, ["--verbose", "shell"])
+    with patch("os.system") as mock_system, patch("os.path.exists") as mock_os_exists:
+        mock_os_exists.return_value = True  # mock presence of /.dockerenv
+        result = runner.invoke(main, ["--verbose", "docker-shell"])
         mock_system.assert_called_with("bash")
         assert result.exit_code == 0
 

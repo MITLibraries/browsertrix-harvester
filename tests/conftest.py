@@ -93,7 +93,7 @@ def _mock_missing_all_wacz_archive_files():
         raise WaczFileDoesNotExist
 
     with patch(
-        "harvester.wacz.WACZClient._get_archive_file_obj",
+        "harvester.wacz.WACZClient._get_archive_file_object",
         side_effect=always_raise_wacz_file_not_exists,
     ):
         yield

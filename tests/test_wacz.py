@@ -53,7 +53,7 @@ def test_wacz_client_lazy_loads_html_websites_df(mocked_wacz_client):
 
 def test_wacz_client_raise_exception_on_missing_wacz_file(mocked_wacz_client):
     with pytest.raises(WaczFileDoesNotExist):
-        mocked_wacz_client._get_archive_file_obj("does_not_exist")
+        mocked_wacz_client._get_archive_file_object("does_not_exist")
 
 
 def test_wacz_client_parse_cdx_lines(mocked_wacz_client, caplog):

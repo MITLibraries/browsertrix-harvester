@@ -8,7 +8,7 @@ See [architecture docs](docs/architecture.md).
 
 ## Development
 
-**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While possible to install browsertrix-crawler on your local machine, this application is oriented around running as a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvest-dockerized` has been created.
+**NOTE**: When performing web crawls, this application invokes browsertrix-crawler.  While possible to install browsertrix-crawler on your local machine, this application is oriented around running as a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvester-dockerized` has been created.
 
 ## Environment Variables
 
@@ -26,12 +26,12 @@ SENTRY_DSN=None# If set to a valid Sentry DSN, enables Sentry exception monitori
 - Build docker image: `make dist-local`
   - builds local image `browsertrix-harvester-dev:latest`
 - To run the app:
-  - Non-Dockerized: `pipenv run harvest --help`
+  - Non-Dockerized: `pipenv run harvester --help`
     - works locally for many things, but will throw error for actions that perform crawls
-  - Dockerized: `pipenv run harvest-dockerized --help`
+  - Dockerized: `pipenv run harvester-dockerized --help`
     - provides full functionality by running as a docker container
     - host machine `~/.aws` directory mounted into container to provide AWS credentials to container
-    - points back to the pipenv command `harvest` 
+    - points back to the pipenv command `harvester` 
 
 ### Testing and Linting
 
@@ -53,25 +53,25 @@ The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"
 
 ### Main
 ```shell
-pipenv run harvest
+pipenv run harvester
 ```
 ```text
-UUsage: -c [OPTIONS] COMMAND [ARGS]...
+Usage: -c [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -v, --verbose  Pass to log at debug level instead of info
   -h, --help     Show this message and exit.
 
 Commands:
+  docker-shell               Run a bash shell inside the docker container.
   generate-metadata-records  Generate metadata records from a WACZ file.
-  harvest                    Perform a crawl and generate metadata...
-  parse-url-content          Get HTML content for a single URL from a...
-  shell                      Run a bash shell inside the docker container.
+  harvest                    Perform crawl and generate metadata records.
+  parse-url-content          Get HTML for a single URL.
 ```
 
 ### Shell environment
 ```shell
-pipenv run harvest shell
+pipenv run harvester shell
 ```
 ```text
 Usage: -c shell [OPTIONS]
@@ -84,7 +84,7 @@ Options:
 
 ### Parse URL content from crawl
 ```shell
-pipenv run harvest parse-url-content
+pipenv run harvester parse-url-content
 ```
 ```text
 Usage: -c parse-url-content [OPTIONS]
@@ -103,7 +103,7 @@ Options:
 
 ### Generate metadata records from a WACZ file
 ```shell
-pipenv run harvest generate-metadata-records
+pipenv run harvester generate-metadata-records
 ```
 ```text
 Usage: -c generate-metadata-records [OPTIONS]
@@ -137,10 +137,10 @@ See section [Browsertrix Crawl Configuration](#browsertrix-crawl-configuration) 
 
 ```shell
 # run harvest as local docker container
-pipenv run harvest-dockerized harvest
+pipenv run harvester-dockerized harvest
 
 # command used for deployed ECS task
-pipenv run harvest harvest
+pipenv run harvester harvest
 ```
 ```text
 Usage: -c harvest [OPTIONS]
@@ -176,9 +176,9 @@ Options:
 ## Browsertrix Crawl Configuration
 
 A layered approach is used for configuring the browsertrix web crawl part of a harvest:
-1. defaults defined in `Crawler` class that initialize the base crawler command
-2. configuration YAML file read and applied by the crawler
-3. runtime CLI arguments for this app that override a subset of defaults or YAML defined configurations
+1. Defaults defined in `Crawler` class that initialize the base crawler command
+2. Configuration YAML file read and applied by the crawler
+3. Runtime CLI arguments for this app that override a subset of defaults or YAML defined configurations
 
 Ultimately, these combine to provide the crawler configurations defined here: https://github.com/webrecorder/browsertrix-crawler#crawling-configuration-options.
 
@@ -214,12 +214,12 @@ For deployed instances of this harvester -- e.g. invoked by the TIMDEX pipeline 
 One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata records for websites crawled.  This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `.xml`, `.tsv`, or `.csv` -- dictates the output file type.
 
 Metadata is extracted in the following way:
-1. the crawl is performed, and a WACZ file is saved inside the container
-2. data from multiple parts of the crawl is extracted and combined into a single dataframe
+1. The crawl is performed, and a WACZ file is saved inside the container
+2. Data from multiple parts of the crawl is extracted and combined into a single dataframe
 3. HTML content for each website is parsed from the WARC files
-4. additional metadata is extracted from that HTML content
-5. the original dataframe of websites is extended with this additional metadata generated from the HTML 
-6. lastly, this is written locally, or to S3, as an XML, TSV, or CSV file
+4. Additional metadata is extracted from that HTML content
+5. The original dataframe of websites is extended with this additional metadata generated from the HTML 
+6. Lastly, this is written locally, or to S3, as an XML, TSV, or CSV file
 
 An example record from an XML output file looks like this:
 ```xml
@@ -285,4 +285,4 @@ it's likely that:
 1. either the config YAML or output files are attempting to read/write from S3 
 2. the container does not have AWS credentials to work with
 
-The Pipfile command `harvest-dockerized` mounts your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.
+The Pipfile command `harvester-dockerized` mounts your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.

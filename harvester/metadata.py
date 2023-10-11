@@ -19,12 +19,11 @@ class CrawlMetadataParser:
     """Class to facilitate parsing metadata records from completed crawls.
 
     This parser is designed to parse a WACZ file, a compressed archive of a web crawl, and
-    generate structured data, metadata records for each website crawled.
+    generate metadata records for each website crawled.
     """
 
     # list of metadata tags that are extracted from HTML
     HTML_CONTENT_METADATA_TAGS = (
-        "title",
         "og:site_name",
         "og:title",
         "og:locale",
@@ -167,10 +166,8 @@ class CrawlMetadataParser:
         return tags
 
     def _remove_fulltext_whitespace(self, fulltext: str) -> str:
-        """Cleanup fulltext as provided by Browsertrix crawl."""
-        fulltext = fulltext.replace("\n", " ")
-        fulltext = fulltext.replace("\r", " ")
-        fulltext = fulltext.replace("\t", " ")
+        """Remove whitespace from provided fulltext."""
+        fulltext = fulltext.replace("\n", " ").replace("\r", " ").replace("\t", " ")
         # ruff: noqa: RET504
         return fulltext
 
@@ -229,11 +226,13 @@ class CrawlMetadataRecords:
     """Class to represent and serialize structured metadata extracted from crawl."""
 
     def __init__(self, metadata_df: pd.DataFrame) -> None:
-        self.df = metadata_df
+        self.metadata_df = metadata_df
 
     # ruff: noqa: D105
     def __repr__(self) -> str:
-        return f"<CrawlMetadataRecords: {len(self.df)} records>"  # pragma: no cover
+        return (
+            f"<CrawlMetadataRecords: {len(self.metadata_df)} records>"  # pragma: no cover
+        )
 
     def to_xml(self) -> bytes:
         """Create an XML byte string of crawl metadata.
@@ -244,10 +243,10 @@ class CrawlMetadataRecords:
         </records>
         """
         root = etree.Element("records")
-        for _, row in self.df.iterrows():
+        for _, row in self.metadata_df.iterrows():
             item = etree.Element("record")
             root.append(item)
-            for col in self.df.columns:
+            for col in self.metadata_df.columns:
                 cell = etree.Element(col)
                 cell.text = str(row[col])
                 item.append(cell)
@@ -269,10 +268,10 @@ class CrawlMetadataRecords:
                 f.write(self.to_xml())
         elif file_format == "tsv":
             with smart_open.open(filepath, "wb") as f:
-                self.df.to_csv(filepath, sep="\t", index=False)
+                self.metadata_df.to_csv(filepath, sep="\t", index=False)
         elif file_format == "csv":
             with smart_open.open(filepath, "wb") as f:
-                self.df.to_csv(filepath, sep=",", index=False)
+                self.metadata_df.to_csv(filepath, sep=",", index=False)
         else:
-            msg = f"File format '{file_format}' not recognized"
-            raise NotImplementedError(msg)
+            message = f"File format '{file_format}' not recognized"
+            raise NotImplementedError(message)
