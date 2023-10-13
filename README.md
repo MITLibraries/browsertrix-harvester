@@ -42,7 +42,7 @@ make lint
 
 #### Local Test Crawl
 ```shell
-make test-harvest-local
+make run-harvest-local
 ```
 
 This Make command kicks off a harvest via a local docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
@@ -52,7 +52,7 @@ The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"
 ### Remote Test Crawl
 
 ```shell
-make test-harvest-ecs-dev1
+make run-harvest-dev
 ```
   * Set AWS credentials are required in calling context
   * Kicks off an ECS Fargate task in Dev1

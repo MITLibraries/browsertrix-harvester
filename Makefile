@@ -6,6 +6,7 @@ ECR_URL_DEV:=222053980223.dkr.ecr.us-east-1.amazonaws.com/browsertrix-harvester-
 ### End of Terraform-generated header                            ###
 SHELL=/bin/bash
 DATETIME:=$(shell date -u +%Y%m%dT%H%M%SZ)
+CURRENT_DATE=$(date +"%Y-%m-%d")
 
 ### Dependency commands ###
 install: # install python dependencies
@@ -49,16 +50,14 @@ black-apply:
 ruff-apply: 
 	pipenv run ruff check --fix .
 
-# CLI commands
 docker-shell:
 	pipenv run harvester-dockerized docker-shell
 
-# Docker commands
 dist-local:
 	docker build -t $(ECR_NAME_DEV):latest .
 
-# Testing commands
-test-harvest-local:
+# Test local harvest
+run-harvest-local:
 	pipenv run harvester-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
@@ -66,14 +65,21 @@ test-harvest-local:
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'
 
+# Test Dev1 harvest
+run-harvest-dev:
+	CRAWL_NAME=test-harvest-ecs-$CURRENT_DATE aws ecs run-task \
+		--cluster timdex-dev \
+		--task-definition timdex-browsertrixharvester-dev \
+		--launch-type="FARGATE" \
+		--region us-east-1 \
+		--network-configuration '{"awsvpcConfiguration": {"subnets": ["subnet-0488e4996ddc8365b","subnet-022e9ea19f5f93e65"], "securityGroups": ["sg-044033bf5f102c544"]}}' \
+		--overrides '{"containerOverrides": [ {"name":"browsertrix-harvester", "command": ["--verbose", "harvest", "--crawl-name", "'"$CRAWL_NAME"'", "--config-yaml-file", "/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml", "--metadata-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'"$CRAWL_NAME"'.xml", "--wacz-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'"$CRAWL_NAME"'.wacz", "--num-workers", "2"]}]}'
+
+# Test local URL content parsing
 test-parse-url-content:
 	pipenv run harvester parse-url-content \
 	--wacz-input-file="tests/fixtures/example.wacz" \
 	--url="https://example.com/hello-world"
-
-# remote ecs task crawl in Dev1
-test-harvest-ecs-dev1:
-	bin/test-harvest-ecs-dev1.sh
 
 ### Terraform-generated Developer Deploy Commands for Dev environment ###
 dist-dev: ## Build docker container (intended for developer-based manual build)
