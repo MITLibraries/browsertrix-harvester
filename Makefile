@@ -51,7 +51,7 @@ ruff-apply:
 
 # CLI commands
 docker-shell:
-	pipenv run harvester-dockerized shell
+	pipenv run harvester-dockerized docker-shell
 
 # Docker commands
 dist-local:

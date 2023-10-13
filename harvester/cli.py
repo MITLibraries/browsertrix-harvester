@@ -1,5 +1,5 @@
 """harvester.cli"""
-# ruff: noqa: FBT001, ARG001
+# ruff: noqa: FBT001
 
 import logging
 import os
@@ -33,8 +33,7 @@ def main(ctx: click.Context, verbose: bool) -> None:
 
 
 @main.command()
-@click.pass_context
-def docker_shell(ctx: click.Context) -> None:
+def docker_shell() -> None:
     """Run a bash shell inside the docker container.
 
     The decorator utils.require_container is used to ensure a docker container context
@@ -62,8 +61,7 @@ def docker_shell(ctx: click.Context) -> None:
     type=str,
     help="Website URL to parse HTML content for",
 )
-@click.pass_context
-def parse_url_content(ctx: click.Context, wacz_input_file: str, url: str) -> None:
+def parse_url_content(wacz_input_file: str, url: str) -> None:
     """Get HTML for a single URL.
 
     This CLI command extracts the fully rendered content of a specific URL from a web
@@ -119,6 +117,12 @@ def generate_metadata_records(
         metadata_output_file
     )
     logger.info("Metadata records successfully written")
+    logger.info(
+        "Total elapsed: %s",
+        str(
+            timedelta(seconds=perf_counter() - ctx.obj["START_TIME"]),
+        ),
+    )
 
 
 @main.command()
@@ -228,10 +232,9 @@ def harvest(
         )
         logger.info("Metadata records successfully written")
 
-    elapsed_time = perf_counter() - ctx.obj["START_TIME"]
     logger.info(
-        "Total time to complete harvest: %s",
+        "Total elapsed: %s",
         str(
-            timedelta(seconds=elapsed_time),
+            timedelta(seconds=perf_counter() - ctx.obj["START_TIME"]),
         ),
     )
