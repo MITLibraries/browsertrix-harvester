@@ -1,2 +1,2 @@
 #!/bin/sh
-pipenv run harvest $@
+pipenv run harvester $@

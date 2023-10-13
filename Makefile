@@ -50,18 +50,23 @@ ruff-apply:
 	pipenv run ruff check --fix .
 
 # CLI commands
-shell:
-	pipenv run harvest-dockerized shell
+docker-shell:
+	pipenv run harvester-dockerized docker-shell
 
 # Docker commands
 dist-local:
 	docker build -t $(ECR_NAME_DEV):latest .
 
-# Test crawl commands
-# local docker container crawl
+# Testing commands
 test-harvest-local:
-	pipenv run harvest-dockerized --verbose harvest \
+	pipenv run harvester-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
+	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'
+
+test-parse-url-content:
+	pipenv run harvester parse-url-content \
+	--wacz-input-file="tests/fixtures/example.wacz" \
+	--url="https://example.com/hello-world"

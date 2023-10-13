@@ -12,3 +12,7 @@ class WaczFileDoesNotExist(Exception):
 
 class ConfigYamlError(Exception):
     pass
+
+
+class ContextManagerRequiredError(Exception):
+    pass

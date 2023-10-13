@@ -38,19 +38,25 @@ classDiagram
         crawl_output_dir: str
         crawl() -> WACZ archive
     }
-    class CrawlParser{
+    class CrawlMetadataParser{
         wacz_filepath: str
-        archive: ZipFile
-        websites_df: DataFrame
         generate_metadata() -> DataFrame        
+    }
+    class WACZClient{
+        wacz_filepath: str
+        wacz_archive: ZipFile
+        html_websites_df: DataFrame
+        get_website_content() -> bytes|str
+        get_website_content_by_url() -> bytes|str
     }
     class CrawlMetadataRecords{
         df: DataFrame
         write() -> File
     }
     Crawler <|-- Cli
-    CrawlParser <|-- Cli
-    CrawlMetadataRecords <|-- CrawlParser
+    CrawlMetadataParser <|-- Cli
+    WACZClient <|-- CrawlMetadataParser
+    CrawlMetadataRecords <|-- CrawlMetadataParser
     
 ```
 
@@ -68,9 +74,10 @@ flowchart LR
     output_folder("/output/crawls")
     
     %% docker container
+    pipenv_cmd_container("Pipenv Cmd")
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlParser")
+    parser("class CrawlMetadataParser")
     metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
@@ -79,7 +86,7 @@ flowchart LR
     output_wacz("WACZ archive file")
     output_metadata("Metadata Records XML")
     
-    pipenv_cmd --> cli_harvest
+    pipenv_cmd --> pipenv_cmd_container
     output_folder -. mount .- crawls_folder
     
     subgraph Host Machine
@@ -95,6 +102,7 @@ flowchart LR
     subgraph Docker Container 
         btrix
         crawls_folder
+        pipenv_cmd_container --> cli_harvest
         cli_harvest -->|Step 1: call| crawler
         crawler -->|Step 2: call\nvia subprocess| btrix        
         btrix -->|writes to| crawls_folder
@@ -104,8 +112,7 @@ flowchart LR
     end
     
     cli_harvest -->|"Step 3: write (optional)"| output_wacz
-    metadata -->|Step 5: write| output_metadata
-    
+    metadata -->|Step 5: write| output_metadata    
 ```
 
 ### Deployed
@@ -123,7 +130,7 @@ flowchart LR
     %% docker container
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlParser")
+    parser("class CrawlMetadataParser")
     metadata("class CrawlMetadataRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")

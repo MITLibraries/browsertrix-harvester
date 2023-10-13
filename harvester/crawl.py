@@ -8,7 +8,7 @@ import subprocess
 
 import smart_open  # type: ignore[import]
 
-from harvester.exceptions import ConfigYamlError
+from harvester.exceptions import ConfigYamlError, WaczFileDoesNotExist
 from harvester.utils import require_container
 
 logger = logging.getLogger(__name__)
@@ -88,6 +88,12 @@ class Crawler:
                         logger.debug(line)
                         stderr.append(line)
             return_code = process.wait()
+
+        # raise exception if WACZ file not found from crawl
+        if not os.path.exists(self.wacz_filepath):
+            msg = f"WACZ file not found at expected path: {self.wacz_filepath}"
+            raise WaczFileDoesNotExist(msg)
+
         return return_code, stdout, stderr
 
     def _copy_config_yaml_local(self) -> None:
@@ -143,13 +149,13 @@ class Crawler:
         }
 
         # apply common arguments as standalone CLI arguments
-        if self.num_workers is not None:
+        if self.num_workers:
             btrix_args["--workers"] = str(self.num_workers)
-        if self.sitemap_from_date is not None:
+        if self.sitemap_from_date:
             btrix_args["--sitemapFromDate"] = self.sitemap_from_date
 
         # lastly, if JSON string of btrix args provided, parse and apply
-        if self.btrix_args_json is not None:
+        if self.btrix_args_json:
             btrix_additional_args = json.loads(self.btrix_args_json)
             for arg_name, arg_value in btrix_additional_args.items():
                 btrix_args[arg_name] = str(arg_value)

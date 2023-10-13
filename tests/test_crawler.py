@@ -9,6 +9,7 @@ import pytest
 from harvester.exceptions import (
     ConfigYamlError,
     RequiresContainerContextError,
+    WaczFileDoesNotExist,
 )
 
 
@@ -45,7 +46,7 @@ def test_crawler_properties(create_mocked_crawler):
 
 
 def test_crawler_env_var_manipulation(create_mocked_crawler):
-    assert os.getenv("VIRTUAL_ENV", None) is not None
+    assert os.getenv("VIRTUAL_ENV", None)
     crawler = create_mocked_crawler()
     # ruff: noqa: SLF001
     env_vars = crawler._get_subprocess_env_vars()
@@ -109,7 +110,7 @@ def test_crawler_build_command(create_mocked_crawler):
     )
 
 
-@pytest.mark.usefixtures("_mock_inside_container")
+@pytest.mark.usefixtures("_mock_inside_container", "_mock_wacz_file_exists")
 def test_crawl_success(create_mocked_crawler):
     crawler = create_mocked_crawler()
 
@@ -129,3 +130,24 @@ def test_crawl_success(create_mocked_crawler):
         assert return_code == 0
         assert stdout == [_ for _ in stdouts if _ != ""]  # empty strings are skipped
         assert stderr == [_ for _ in stderrs if _ != ""]  # empty strings are skipped
+
+
+@pytest.mark.usefixtures("_mock_inside_container")
+def test_crawl_fails_to_create_wacz_raises_error(create_mocked_crawler):
+    crawler = create_mocked_crawler()
+
+    stdouts = ["stdout1", "", "stdout2"]
+    stderrs = ["stderr1", "stderr2", ""]
+
+    # create a mock subprocess process with
+    mock_process = MagicMock()
+    mock_process.__enter__.return_value = mock_process
+    mock_process.__exit__.return_value = None
+    mock_process.stdout = iter(stdouts)
+    mock_process.stderr = iter(stderrs)
+    mock_process.wait.return_value = 0
+
+    with pytest.raises(WaczFileDoesNotExist), patch(
+        "subprocess.Popen", return_value=mock_process
+    ):
+        crawler.crawl()

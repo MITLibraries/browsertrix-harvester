@@ -1,5 +1,5 @@
 """harvester.cli"""
-# ruff: noqa: FBT001, ARG001
+# ruff: noqa: FBT001
 
 import logging
 import os
@@ -11,6 +11,9 @@ import smart_open  # type: ignore[import]
 
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
+from harvester.metadata import CrawlMetadataParser
+from harvester.utils import require_container
+from harvester.wacz import WACZClient
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +33,96 @@ def main(ctx: click.Context, verbose: bool) -> None:
 
 
 @main.command()
+def docker_shell() -> None:
+    """Run a bash shell inside the docker container.
+
+    The decorator utils.require_container is used to ensure a docker container context
+    for running a bash shell.
+    """
+
+    @require_container
+    def bash_shell_with_confirmed_container_context() -> None:
+        # ruff: noqa: S605, S607
+        os.system("bash")
+
+    bash_shell_with_confirmed_container_context()
+
+
+@main.command()
+@click.option(
+    "--wacz-input-file",
+    required=True,
+    type=str,
+    help="Filepath to WACZ archive from crawl",
+)
+@click.option(
+    "--url",
+    required=True,
+    type=str,
+    help="Website URL to parse HTML content for",
+)
+def parse_url_content(wacz_input_file: str, url: str) -> None:
+    """Get HTML for a single URL.
+
+    This CLI command extracts the fully rendered content of a specific URL from a web
+    crawl WACZ file. By printing/echoing the contents, this can be redirected via stdout
+    in the calling context.
+    """
+    # set logging level to ERROR to keep stdout clear of logging
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.ERROR)
+
+    # parse crawled content for URL
+    with WACZClient(wacz_input_file) as wacz_client:
+        html_content = wacz_client.get_website_content_by_url(url, decode=True)
+
+    click.echo(html_content)
+
+
+@main.command()
+@click.option(
+    "--wacz-input-file",
+    required=True,
+    type=str,
+    help="Filepath to WACZ archive from crawl",
+)
+@click.option(
+    "--metadata-output-file",
+    required=False,
+    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
+)
+@click.option(
+    "--include-fulltext",
+    is_flag=True,
+    help="Set to include parsed fulltext from website in generated structured metadata.",
+)
 @click.pass_context
-def shell(ctx: click.Context) -> None:
-    """Run a bash shell inside the docker container."""
-    # ruff: noqa: S605, S607
-    os.system("bash")
+def generate_metadata_records(
+    ctx: click.Context,
+    wacz_input_file: str,
+    metadata_output_file: str,
+    include_fulltext: bool,
+) -> None:
+    """Generate metadata records from a WACZ file.
+
+    This is a convenience CLI command.  Most commonly, the command 'harvest' will be used
+    that performs a web crawl and generates metadata records from that crawl as under the
+    umbrella of a single command.  This CLI command would be useful if a crawl is already
+    completed (a WACZ file exists) and only the generation of metadata records is needed.
+    """
+    logger.info("Parsing WACZ archive file")
+    parser = CrawlMetadataParser(wacz_input_file)
+    parser.generate_metadata(include_fulltext=include_fulltext).write(
+        metadata_output_file
+    )
+    logger.info("Metadata records successfully written")
+    logger.info(
+        "Total elapsed: %s",
+        str(
+            timedelta(seconds=perf_counter() - ctx.obj["START_TIME"]),
+        ),
+    )
 
 
 @main.command()
@@ -66,6 +154,17 @@ def shell(ctx: click.Context) -> None:
     "e.g. s3://bucketname/filename.xml.",
 )
 @click.option(
+    "--metadata-output-file",
+    required=False,
+    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
+)
+@click.option(
+    "--include-fulltext",
+    is_flag=True,
+    help="Set to include parsed fulltext from website in generated structured metadata.",
+)
+@click.option(
     "--num-workers",
     default=2,
     required=False,
@@ -88,10 +187,23 @@ def harvest(
     config_yaml_file: str,
     sitemap_from_date: str,
     wacz_output_file: str,
+    metadata_output_file: str,
+    include_fulltext: bool,
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
-    """Perform a web crawl and parse structured data."""
+    """Perform crawl and generate metadata records.
+
+    Perform a web crawl and generate metadata records from the resulting WACZ file.
+    """
+    if not wacz_output_file and not metadata_output_file:
+        msg = (
+            "One or both of arguments --wacz-output-file and --metadata-output-file "
+            "must be set.  Exiting without performing a crawl."
+        )
+        logger.error(msg)
+        return
+
     logger.info("Preparing for harvest name: '%s'", crawl_name)
     crawler = Crawler(
         crawl_name,
@@ -111,10 +223,18 @@ def harvest(
         ) as wacz_in:
             wacz_out.write(wacz_in.read())
 
-    elapsed_time = perf_counter() - ctx.obj["START_TIME"]
+    # parse crawl and generate metadata records
+    if metadata_output_file:
+        logger.info("Parsing WACZ archive file")
+        parser = CrawlMetadataParser(crawler.wacz_filepath)
+        parser.generate_metadata(include_fulltext=include_fulltext).write(
+            metadata_output_file
+        )
+        logger.info("Metadata records successfully written")
+
     logger.info(
-        "Total time to complete harvest: %s",
+        "Total elapsed: %s",
         str(
-            timedelta(seconds=elapsed_time),
+            timedelta(seconds=perf_counter() - ctx.obj["START_TIME"]),
         ),
     )
