@@ -56,7 +56,7 @@ make run-harvest-dev
 ```
   * Set AWS credentials are required in calling context
   * Kicks off an ECS Fargate task in Dev1
-  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-$CURRENT_DATE.xml|wacz`
+  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|wacz`
 
 ## CLI commands
 
