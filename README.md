@@ -42,12 +42,21 @@ make lint
 
 #### Local Test Crawl
 ```shell
-make test-harvest-local
+make run-harvest-local
 ```
 
 This Make command kicks off a harvest via a local docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
 
 The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepage.xml`.
+
+### Remote Test Crawl
+
+```shell
+make run-harvest-dev
+```
+  * Set AWS credentials are required in calling context
+  * Kicks off an ECS Fargate task in Dev1
+  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|wacz`
 
 ## CLI commands
 
@@ -260,16 +269,6 @@ An example record from an XML output file looks like this:
     ...
 </records>
 ```
-
-## Convenience Make Commands
-
-### Local Test Crawl
-
-```shell
-make test-harvest-local
-```
-  * Performs a crawl using the container mounted config YAML `/browsertrix-harvest/tests/fixtures/lib-website-homepage.yaml`
-  * Metadata is written to container directory `/crawls/collections/homepage/homepage.xml`, which is mounted and available in the local `output/` folder 
 
 ## Troubleshooting
 
