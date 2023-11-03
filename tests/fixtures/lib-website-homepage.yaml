@@ -1,6 +1,6 @@
 generateCDX: true
 generateWACZ: true
-text: true
+text: to-pages
 # prevent PAGES from getting crawled; scoping
 exclude:
   - ".*lib.mit.edu/search/.*"
