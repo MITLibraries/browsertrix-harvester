@@ -14,10 +14,10 @@ RUN apt-get update \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update
 
-# Install Python 3.11
-RUN apt-get install -y python3.11 python3.11-venv python3.11-dev
+# Install Python
+RUN apt-get install -y python3.12 python3.12-venv python3.12-dev
 
-# Install pip for Python 3.11
+# Install pip for Python
 RUN apt-get install -y python3-pip
 
 # Upgrade pip and install pipenv
@@ -28,7 +28,7 @@ RUN pip3 install --upgrade pip \
 # Setup python virtual environment
 WORKDIR /browsertrix-harvester
 COPY Pipfile /browsertrix-harvester/Pipfile
-RUN pipenv install --python 3.11
+RUN pipenv install --python 3.12
 
 # Copy full browstrix-harvester app
 COPY pyproject.toml /browsertrix-harvester/
