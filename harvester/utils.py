@@ -1,4 +1,5 @@
 """harvester.utils"""
+
 # ruff: noqa: ANN401
 
 import os

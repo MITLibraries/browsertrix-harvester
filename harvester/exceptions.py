@@ -1,4 +1,5 @@
 """browsertrix_harvest.exceptions."""
+
 # ruff: noqa: N818
 
 
