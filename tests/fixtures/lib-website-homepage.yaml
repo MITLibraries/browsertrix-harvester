@@ -8,12 +8,12 @@ exclude:
 # prevent RESOURCES / ASSETS from getting retrieved; URL requests
 blockRules:
   - ".*googlevideo.com.*"
-  - ".*cdn.pw-60-mitlib-wp-network.pantheonsite.io/media/.*"
+  - ".*cdn.libraries.mit.edu/media/.*"
   - "\\.(jpg|png)$"
 depth: 1
 maxPageLimit: 20
 timeout: 30
 scopeType: "domain"
 seeds:
-  - url: https://pw-60-mitlib-wp-network.pantheonsite.io/sitemap.xml
-    sitemap: https://pw-60-mitlib-wp-network.pantheonsite.io/sitemap.xml
+  - url: https://www-test.libraries.mit.edu/sitemap.xml
+    sitemap: https://www-test.libraries.mit.edu/sitemap.xml
