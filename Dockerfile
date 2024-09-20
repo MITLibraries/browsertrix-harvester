@@ -20,9 +20,13 @@ RUN apt-get install -y python3.12 python3.12-venv python3.12-dev
 # Install pip for Python
 RUN apt-get install -y python3-pip
 
-# Upgrade pip and install pipenv
-RUN pip3 install --upgrade pip \
-    && pip3 install pipenv
+# Create and activate a virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install pip and pipenv within the virtual environment
+RUN pip install --upgrade pip \
+    && pip install pipenv
 
 # NOTE: /app is already used by browsertrix-crawler
 # Setup python virtual environment
