@@ -1,4 +1,5 @@
 """harvester.cli"""
+
 # ruff: noqa: FBT001
 
 import logging

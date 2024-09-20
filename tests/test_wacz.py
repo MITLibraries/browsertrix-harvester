@@ -1,4 +1,5 @@
 """tests.test_wacz"""
+
 # ruff: noqa: SLF001, PD901
 
 import logging

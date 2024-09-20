@@ -1,4 +1,5 @@
 """tests.test_parser"""
+
 # ruff: noqa: S108
 
 from unittest.mock import call, mock_open, patch

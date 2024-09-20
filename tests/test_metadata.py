@@ -1,4 +1,5 @@
 """tests.test_metadata"""
+
 # ruff: noqa: SLF001, PD002, PD901
 
 from unittest.mock import mock_open, patch

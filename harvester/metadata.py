@@ -1,9 +1,10 @@
 """harvester.parse"""
+
 # ruff: noqa: N813
 
 import logging
 import time
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as ET
 
 import pandas as pd
 import smart_open  # type: ignore[import]
@@ -118,7 +119,7 @@ class CrawlMetadataParser:
 
                 # augment with metadata parsed from the website's HTML content
                 html_content = wacz_client.get_website_content(
-                    row.filename, row.offset, decode=True
+                    str(row.filename), str(row.offset), decode=True
                 )
                 html_metadata = self.get_html_content_metadata(html_content)
                 metadata.update(html_metadata)
@@ -126,7 +127,8 @@ class CrawlMetadataParser:
                 # augment again with data parsed from, and including, HTML fulltext
                 metadata.update(
                     self.parse_fulltext_fields(
-                        row.text, include_fulltext=include_fulltext
+                        row.text,  # type:ignore[arg-type]
+                        include_fulltext=include_fulltext,
                     )
                 )
 
@@ -198,9 +200,11 @@ class CrawlMetadataParser:
         fulltext = self._remove_fulltext_whitespace(raw_fulltext)
         return {
             "fulltext": fulltext if include_fulltext else None,
-            "fulltext_keywords": self._generate_fulltext_keywords(fulltext)
-            if include_fulltext_keywords
-            else None,
+            "fulltext_keywords": (
+                self._generate_fulltext_keywords(fulltext)
+                if include_fulltext_keywords
+                else None
+            ),
         }
 
     @property
@@ -242,15 +246,15 @@ class CrawlMetadataRecords:
             <record>...</record>, ...
         </records>
         """
-        root = etree.Element("records")
+        root = ET.Element("records")
         for _, row in self.metadata_df.iterrows():
-            item = etree.Element("record")
+            item = ET.Element("record")
             root.append(item)
             for col in self.metadata_df.columns:
-                cell = etree.Element(col)
+                cell = ET.Element(col)
                 cell.text = str(row[col])
                 item.append(cell)
-        return etree.tostring(root, encoding="utf-8", method="xml")
+        return ET.tostring(root, encoding="utf-8", method="xml")
 
     def write(self, filepath: str) -> None:
         """Serialize metadata records in various file formats.

@@ -4,30 +4,30 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-click = "*"
-sentry-sdk = "*"
-warcio = "*"
-requests = "*"
-pandas = "*"
 bs4 = "*"
+click = "*"
+pandas = "*"
+requests = "*"
+sentry-sdk = "*"
 smart-open = {version = "*", extras = ["s3"]}
+warcio = "*"
 yake = "*"
 
 [dev-packages]
 black = "*"
 coverage = "*"
 coveralls = "*"
+ipython = "*"
 mypy = "*"
+pandas-stubs = "*"
+pre-commit = "*"
 pytest = "*"
 ruff = "*"
 safety= "*"
-pre-commit = "*"
-ipython = "*"
 types-beautifulsoup4 = "*"
-pandas-stubs = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
 
 [scripts]
 harvester = "python -c \"from harvester.cli import main; main()\""
