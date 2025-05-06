@@ -25,6 +25,7 @@ pytest = "*"
 ruff = "*"
 safety= "*"
 types-beautifulsoup4 = "*"
+pip-audit = "*"
 
 [requires]
 python_version = "3.12"
