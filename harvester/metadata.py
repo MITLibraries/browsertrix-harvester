@@ -1,11 +1,11 @@
 """harvester.parse"""
 
-# ruff: noqa: N813
-
+import io
 import logging
 import time
 import xml.etree.ElementTree as ET
 
+import jsonlines  # type: ignore[import]
 import pandas as pd
 import smart_open  # type: ignore[import]
 from bs4 import BeautifulSoup
@@ -256,6 +256,14 @@ class CrawlMetadataRecords:
                 item.append(cell)
         return ET.tostring(root, encoding="utf-8", method="xml")
 
+    def to_jsonl(self) -> bytes:
+        """Create JSONLines buffer from crawl metadata."""
+        buffer = io.StringIO()
+        with jsonlines.Writer(buffer) as writer:
+            for _, row in self.metadata_df.iterrows():
+                writer.write(row.to_dict())
+        return buffer.getvalue().encode("utf-8")
+
     def write(self, filepath: str) -> None:
         """Serialize metadata records in various file formats.
 
@@ -270,6 +278,9 @@ class CrawlMetadataRecords:
         if file_format == "xml":
             with smart_open.open(filepath, "wb") as f:
                 f.write(self.to_xml())
+        elif file_format == "jsonl":
+            with smart_open.open(filepath, "wb") as f:
+                f.write(self.to_jsonl())
         elif file_format == "tsv":
             with smart_open.open(filepath, "wb") as f:
                 self.metadata_df.to_csv(filepath, sep="\t", index=False)

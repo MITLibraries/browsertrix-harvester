@@ -12,7 +12,7 @@ from harvester.cli import main
 
 def test_cli_no_command_options(caplog, runner):
     result = runner.invoke(main)
-    assert result.exit_code == 0
+    assert result.exit_code == 2
 
     result = runner.invoke(main, ["--verbose"])
     assert result.exit_code == 2
@@ -183,6 +183,26 @@ def test_cli_generate_metadata_records(caplog, runner):
                 "tests/fixtures/homepage.wacz",
                 "--metadata-output-file",
                 "/tmp/records.xml",
+            ],
+        )
+    assert "Parsing WACZ archive file" in caplog.text
+    assert mock_generate_metadata.called
+    assert "Metadata records successfully written" in caplog.text
+
+
+def test_cli_generate_metadata_records_jsonlines(caplog, runner):
+    with patch(
+        "harvester.metadata.CrawlMetadataParser.generate_metadata",
+    ) as mock_generate_metadata:
+        _result = runner.invoke(
+            main,
+            [
+                "--verbose",
+                "generate-metadata-records",
+                "--wacz-input-file",
+                "tests/fixtures/homepage.wacz",
+                "--metadata-output-file",
+                "/tmp/records.jsonl",
             ],
         )
     assert "Parsing WACZ archive file" in caplog.text

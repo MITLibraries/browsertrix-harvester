@@ -91,7 +91,8 @@ def parse_url_content(wacz_input_file: str, url: str) -> None:
     "--metadata-output-file",
     required=False,
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
+    "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
+    "[jsonl, xml,tsv,csv].",
 )
 @click.option(
     "--include-fulltext",
@@ -152,13 +153,14 @@ def generate_metadata_records(
     "--wacz-output-file",
     required=False,
     help="Filepath to write WACZ archive file to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.xml.",
+    "e.g. s3://bucketname/filename.jsonl.",
 )
 @click.option(
     "--metadata-output-file",
     required=False,
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
-    "e.g. s3://bucketname/filename.xml.  Supported file type extensions: [xml,tsv,csv].",
+    "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
+    "[jsonl,xml,tsv,csv].",
 )
 @click.option(
     "--include-fulltext",
