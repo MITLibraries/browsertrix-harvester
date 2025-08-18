@@ -19,7 +19,6 @@ class Crawler:
 
     DOCKER_CONTAINER_CONFIG_YAML_FILEPATH = "/browsertrix-harvester/crawl-config.yaml"
 
-    # ruff: noqa: FBT001, FBT002
     def __init__(
         self,
         crawl_name: str,

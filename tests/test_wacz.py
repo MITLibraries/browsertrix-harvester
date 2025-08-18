@@ -1,6 +1,6 @@
 """tests.test_wacz"""
 
-# ruff: noqa: SLF001, PD901
+# ruff: noqa: SLF001
 
 import logging
 from zipfile import ZipFile

@@ -11,7 +11,9 @@ from harvester.exceptions import RequiresContainerContextError
 ReturnType = TypeVar("ReturnType")
 
 
-def require_container(func: Callable[..., ReturnType]) -> Callable[..., ReturnType]:
+def require_container(  # noqa: UP047
+    func: Callable[..., ReturnType],
+) -> Callable[..., ReturnType]:
     """Decorator for functions/methods that must be run inside the Docker container.
 
     This checks to see if application is running in a container by looking for either a

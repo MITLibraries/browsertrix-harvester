@@ -47,7 +47,7 @@ make run-harvest-local
 
 This Make command kicks off a harvest via a local docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
 
-The argument `--metadata-output-file="/crawls/collections/homepage/homepage.xml"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepage.xml`.
+The argument `--metadata-output-file="/crawls/collections/homepage/homepagejsonl"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepagejsonl`.
 
 ### Remote Test Crawl
 
@@ -56,7 +56,7 @@ make run-harvest-dev
 ```
   * Set AWS credentials are required in calling context
   * Kicks off an ECS Fargate task in Dev1
-  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|wacz`
+  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|jsonl|wacz`
 
 ## CLI commands
 
@@ -129,8 +129,8 @@ Options:
   --wacz-input-file TEXT       Filepath to WACZ archive from crawl  [required]
   --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
                                local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.xml.  Supported file
-                               type extensions: [xml,tsv,csv].
+                               s3://bucketname/filename.jsonl.  Supported file
+                               type extensions: [jsonl, xml,tsv,csv].
   --include-fulltext           Set to include parsed fulltext from website in
                                generated structured metadata.
   -h, --help                   Show this message and exit.
@@ -154,7 +154,10 @@ pipenv run harvester harvest
 ```text
 Usage: -c harvest [OPTIONS]
 
-  Perform a crawl and generate metadata records from the resulting WACZ file.
+  Perform crawl and generate metadata records.
+
+  Perform a web crawl and generate metadata records from the resulting WACZ
+  file.
 
 Options:
   --config-yaml-file TEXT      Filepath of browsertrix config YAML. Can be a
@@ -166,11 +169,11 @@ Options:
                                after this date in sitemaps
   --wacz-output-file TEXT      Filepath to write WACZ archive file to. Can be
                                a local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.xml.
+                               s3://bucketname/filename.jsonl.
   --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
                                local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.xml.  Supported file
-                               type extensions: [xml,tsv,csv].
+                               s3://bucketname/filename.jsonl.  Supported file
+                               type extensions: [jsonl,xml,tsv,csv].
   --include-fulltext           Set to include parsed fulltext from website in
                                generated structured metadata.
   --num-workers INTEGER        Number of parallel thread workers for crawler.
@@ -220,7 +223,7 @@ For deployed instances of this harvester -- e.g. invoked by the TIMDEX pipeline 
 
 ## Extract Metadata Records
 
-One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata records for websites crawled.  This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `.xml`, `.tsv`, or `.csv` -- dictates the output file type.
+One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata records for websites crawled.  This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `jsonl`, `.tsv`, or `.csv` -- dictates the output file type.
 
 Metadata is extracted in the following way:
 1. The crawl is performed, and a WACZ file is saved inside the container
