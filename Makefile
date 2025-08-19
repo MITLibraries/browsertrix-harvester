@@ -64,7 +64,7 @@ run-harvest-local:
 	pipenv run harvester-dockerized --verbose harvest \
 	--crawl-name="homepage" \
 	--config-yaml-file="/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml" \
-	--metadata-output-file="/crawls/collections/homepage/homepage.xml" \
+	--metadata-output-file="/crawls/collections/homepage/homepage.jsonl" \
 	--num-workers 4 \
 	--btrix-args-json='{"--maxPageLimit":"15"}'
 
@@ -77,7 +77,7 @@ run-harvest-dev:
 		--launch-type="FARGATE" \
 		--region us-east-1 \
 		--network-configuration '{"awsvpcConfiguration": {"subnets": ["subnet-0488e4996ddc8365b","subnet-022e9ea19f5f93e65"], "securityGroups": ["sg-044033bf5f102c544"]}}' \
-		--overrides '{"containerOverrides": [ {"name":"browsertrix-harvester", "command": ["--verbose", "harvest", "--crawl-name", "'$$CRAWL_NAME'", "--config-yaml-file", "/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml", "--metadata-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'$$CRAWL_NAME'.xml", "--wacz-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'$$CRAWL_NAME'.wacz", "--num-workers", "2"]}]}'
+		--overrides '{"containerOverrides": [ {"name":"browsertrix-harvester", "command": ["--verbose", "harvest", "--crawl-name", "'$$CRAWL_NAME'", "--config-yaml-file", "/browsertrix-harvester/tests/fixtures/lib-website-homepage.yaml", "--metadata-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'$$CRAWL_NAME'.jsonl", "--wacz-output-file", "s3://timdex-extract-dev-222053980223/librarywebsite/'$$CRAWL_NAME'.wacz", "--num-workers", "2"]}]}'
 
 # Test local URL content parsing
 test-parse-url-content:

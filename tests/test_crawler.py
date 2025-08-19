@@ -80,14 +80,16 @@ def test_crawler_build_command(create_mocked_crawler):
     crawler = create_mocked_crawler()
 
     base_args = {
-        # fmt: off
         "crawl",
-        "--collection", crawler.crawl_name,
-        "--config", crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
+        "--collection",
+        crawler.crawl_name,
+        "--config",
+        crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
         "--useSitemap",
-        "--logging", "stats",
-        "--workers", str(crawler.num_workers),
-        # fmt: on
+        "--logging",
+        "stats",
+        "--workers",
+        str(crawler.num_workers),
     }
 
     # assert without sitemap_from_date
