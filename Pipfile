@@ -33,4 +33,4 @@ python_version = "3.12"
 
 [scripts]
 harvester = "python -c \"from harvester.cli import main; main()\""
-harvester-dockerized = "docker run -it -v $HOME/.aws:/root/.aws -v $PWD/output/crawls:/crawls browsertrix-harvester-dev:latest"
+harvester-dockerized = "docker run -it -v $PWD/output/crawls:/crawls browsertrix-harvester-dev:latest"
