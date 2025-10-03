@@ -1,5 +1,9 @@
 name: CI
-on: push
+on:
+  pull_request:
+    paths-ignore:
+      - '.github/**'
+
 jobs:
   test:
     uses: mitlibraries/.github/.github/workflows/python-shared-test.yml@main

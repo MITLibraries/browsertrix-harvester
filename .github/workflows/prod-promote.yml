@@ -1,15 +1,50 @@
-### This is the Terraform-generated prod-promote.yml workflow for the browsertrix-harvester-prod repository. ###
-### If this is a Lambda repo, uncomment the FUNCTION line at the end of the document.         ###
+### This is the Terraform-generated prod-promote.yml workflow for the      ###
+### browsertrix-harvester-prod repository.                                                ###
+### If this is a Lambda repo, uncomment the FUNCTION line at the end of    ###
+### the document.                                                          ###
+
 name: Prod Container Promote
 on:
   workflow_dispatch:
   release:
     types: [published]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
+  prep:
+    name: Prep for Promote
+    runs-on: ubuntu-latest
+    outputs: 
+      cpuarch: ${{ steps.setarch.outputs.cpuarch }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set CPU Architecture
+        id: setarch
+        run: |
+          echo "### :abacus: Architecture Selection" >> $GITHUB_STEP_SUMMARY
+          if [[ -f .aws-architecture ]]; then
+            ARCH=$(cat .aws-architecture)
+            echo "\`$ARCH\` was read from \`.aws-architecture\` and passed to the deploy job." >> $GITHUB_STEP_SUMMARY
+          else
+            ARCH="linux/amd64"
+            echo "No \`.aws-architecture\` file, so default \`$ARCH\` was passed to the deploy job." >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "$ARCH" != "linux/arm64" && "$ARCH" != "linux/amd64" ]]; then
+            echo "$ARCH is INVALID architecture!"
+            echo "$ARCH is INVALID architecture!" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "cpuarch=$ARCH" >> $GITHUB_OUTPUT
+
   deploy:
-    name: Prod Container Promote
-    uses: mitlibraries/.github/.github/workflows/ecr-shared-promote-prod.yml@main
+    needs: prep
+    name: Deploy
+    uses: mitlibraries/.github/.github/workflows/ecr-multi-arch-promote-prod.yml@main
     secrets: inherit
     with:
       AWS_REGION: "us-east-1"
@@ -17,5 +52,6 @@ jobs:
       GHA_ROLE_PROD: browsertrix-harvester-gha-prod
       ECR_STAGE: "browsertrix-harvester-stage"
       ECR_PROD: "browsertrix-harvester-prod"
+      CPU_ARCH: ${{ needs.prep.outputs.cpuarch }}
       # FUNCTION: ""
  
