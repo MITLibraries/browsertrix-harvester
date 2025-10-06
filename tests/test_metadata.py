@@ -100,6 +100,20 @@ def test_metadata_parser_remove_whitespace_fulltext(mocked_parser):
     )
 
 
+def test_metadata_parser_remove_duplicate_urls(mocked_parser):
+    df = pd.DataFrame(
+        {
+            "url": ["https://example.com", "https://example.com", "https://other.com"],
+            "cdx_offset": [100, 200, 150],
+        }
+    )
+    result = mocked_parser._remove_duplicate_urls(df)
+    assert len(result) == 2
+    assert (
+        result[result["url"] == "https://example.com"]["cdx_offset"].to_numpy()[0] == 200
+    )
+
+
 def test_metadata_parser_generate_keywords(mocked_parser):
     fulltext = "My favorite colors are: green, red, blue, and orange."
     with patch("yake.KeywordExtractor.extract_keywords") as mocked_keyword_extractor:

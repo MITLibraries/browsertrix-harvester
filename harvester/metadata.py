@@ -139,18 +139,21 @@ class CrawlMetadataParser:
 
                 all_metadata.append(metadata)
 
-            # create dataframe from all dictionaries
-            websites_metadata_df = pd.DataFrame(all_metadata)
+        # create dataframe from all dictionaries
+        websites_metadata_df = pd.DataFrame(all_metadata)
 
-            # replace NaN with python None
-            websites_metadata_df = websites_metadata_df.where(
-                pd.notna(websites_metadata_df), None
-            )
+        # replace NaN with python None
+        websites_metadata_df = websites_metadata_df.where(
+            pd.notna(websites_metadata_df), None
+        )
 
-            # init instance of CrawlMetadataRecords and cache
-            self._websites_metadata = CrawlMetadataRecords(websites_metadata_df)
+        # remove duplicate URLs
+        websites_metadata_df = self._remove_duplicate_urls(websites_metadata_df)
 
-            return self._websites_metadata
+        # init instance of CrawlMetadataRecords and cache
+        self._websites_metadata = CrawlMetadataRecords(websites_metadata_df)
+
+        return self._websites_metadata
 
     @classmethod
     def get_html_content_metadata(cls, html_content: str | bytes) -> dict:
@@ -229,6 +232,19 @@ class CrawlMetadataParser:
                 [word.lower().strip() for word in self.FULLTEXT_KEYWORD_STOPWORDS]
             )
         return self._keyword_extractor
+
+    def _remove_duplicate_urls(self, websites_metadata_df: pd.DataFrame) -> pd.DataFrame:
+        """Remove duplicate URLs.
+
+        The instance with the last CDX offset is used, which is a somewhat arbitrary
+        attempt to used the last instance crawled, but it likely makes no difference given
+        the short timeframe of the crawl.
+        """
+        return (
+            websites_metadata_df.sort_values("cdx_offset")
+            .drop_duplicates(subset="url", keep="last")
+            .reset_index(drop=True)
+        )
 
 
 class CrawlMetadataRecords:
