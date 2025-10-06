@@ -81,7 +81,12 @@ class CrawlMetadataParser:
         self._websites_metadata: CrawlMetadataRecords | None = None
         self._keyword_extractor: KeywordExtractor | None = None
 
-    def generate_metadata(self, include_fulltext: bool = False) -> "CrawlMetadataRecords":
+    def generate_metadata(
+        self,
+        *,
+        include_fulltext: bool = False,
+        extract_fulltext_keywords: bool = False,
+    ) -> "CrawlMetadataRecords":
         """Generate dataframe of metadata records from websites crawled in WACZ file.
 
         This combines metadata from the crawl (e.g. URL, extracted fulltext), and
@@ -94,7 +99,6 @@ class CrawlMetadataParser:
             return self._websites_metadata
 
         with WACZClient(self.wacz_filepath) as wacz_client:
-            # bookkeeping
             all_metadata = []
             t0 = time.time()
             row_count = len(wacz_client.html_websites_df)
@@ -129,6 +133,7 @@ class CrawlMetadataParser:
                     self.parse_fulltext_fields(
                         row.text,  # type:ignore[arg-type]
                         include_fulltext=include_fulltext,
+                        extract_fulltext_keywords=extract_fulltext_keywords,
                     )
                 )
 
@@ -169,9 +174,7 @@ class CrawlMetadataParser:
 
     def _remove_fulltext_whitespace(self, fulltext: str) -> str:
         """Remove whitespace from provided fulltext."""
-        fulltext = fulltext.replace("\n", " ").replace("\r", " ").replace("\t", " ")
-        # ruff: noqa: RET504
-        return fulltext
+        return fulltext.replace("\n", " ").replace("\r", " ").replace("\t", " ")
 
     def _generate_fulltext_keywords(self, fulltext: str) -> str:
         """Parse keywords from fulltext, using YAKE keyword extractor.
@@ -185,27 +188,29 @@ class CrawlMetadataParser:
     def parse_fulltext_fields(
         self,
         raw_fulltext: str | None,
-        # ruff: noqa: FBT001, FBT002
-        include_fulltext: bool = False,
-        include_fulltext_keywords: bool = True,
+        *,
+        include_fulltext: bool = True,
+        extract_fulltext_keywords: bool = False,
     ) -> dict:
         """Parse fulltext fields for output metadata."""
-        if not raw_fulltext:
-            return {
-                "fulltext": None,
-                "fulltext_50_words": None,
-                "fulltext_keywords": None,
-            }
+        fields: dict[str, str | None] = {
+            "fulltext": None,
+            "fulltext_keywords": None,
+        }
+
+        # return early if no fulltext fields requested
+        if not (include_fulltext or extract_fulltext_keywords) or raw_fulltext is None:
+            return fields
 
         fulltext = self._remove_fulltext_whitespace(raw_fulltext)
-        return {
-            "fulltext": fulltext if include_fulltext else None,
-            "fulltext_keywords": (
-                self._generate_fulltext_keywords(fulltext)
-                if include_fulltext_keywords
-                else None
-            ),
-        }
+
+        if include_fulltext:
+            fields["fulltext"] = fulltext
+
+        if extract_fulltext_keywords:
+            fields["fulltext_keywords"] = self._generate_fulltext_keywords(fulltext)
+
+        return fields
 
     @property
     def keyword_extractor(self) -> KeywordExtractor:
