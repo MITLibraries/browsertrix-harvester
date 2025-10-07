@@ -33,6 +33,8 @@ class Crawler:
         self.num_workers = num_workers
         self.btrix_args_json = btrix_args_json
 
+        self._crawl_status_details: list[dict] = []
+
     @property
     def crawl_output_dir(self) -> str:
         return f"/crawls/collections/{self.crawl_name}"
@@ -43,7 +45,7 @@ class Crawler:
         return f"{self.crawl_output_dir}/{self.crawl_name}.wacz"
 
     @require_container
-    def crawl(self) -> tuple[int, list[str], list[str]]:
+    def crawl(self) -> int:
         """Perform a browsertrix crawl.
 
         This method is decorated with @required_container that will prevent it from
@@ -62,7 +64,6 @@ class Crawler:
         # build subprocess command
         cmd = self._build_subprocess_command()
 
-        stdout, stderr = [], []
         # ruff: noqa: S603
         with subprocess.Popen(
             cmd,
@@ -72,28 +73,55 @@ class Crawler:
             stderr=subprocess.PIPE,
             text=True,
         ) as process:
-            if process.stdout:  # pragma: no cover
-                for line in process.stdout:
-                    # ruff: noqa: PLW2901
-                    line = line.strip()
-                    if line and line != "":
-                        logger.debug(line)
-                        stdout.append(line)
-            if process.stderr:  # pragma: no cover
-                for line in process.stderr:
-                    # ruff: noqa: PLW2901
-                    line = line.strip()
-                    if line and line != "":
-                        logger.debug(line)
-                        stderr.append(line)
+            self._handle_subprocess_logging(process)
             return_code = process.wait()
+            for line in self._crawl_status_details[-3:]:
+                logger.info(line)
 
         # raise exception if WACZ file not found from crawl
         if not os.path.exists(self.wacz_filepath):
             msg = f"WACZ file not found at expected path: {self.wacz_filepath}"
             raise WaczFileDoesNotExist(msg)
 
-        return return_code, stdout, stderr
+        return return_code
+
+    def _handle_subprocess_logging(self, process: subprocess.Popen[str]) -> None:
+        """Handle logging of subprocess stdout and stderr."""
+        if process.stdout:  # pragma: no cover
+            for line in process.stdout:
+                line = line.strip()  # noqa: PLW2901
+                if line and line != "":
+                    if '"context":"crawlStatus"' in line:
+                        self._log_crawl_count_status(line)
+                    logger.debug(line)
+        if process.stderr:  # pragma: no cover
+            for line in process.stderr:
+                line = line.strip()  # noqa: PLW2901
+                if line and line != "":
+                    logger.debug(line)
+
+    def _log_crawl_count_status(self, log_line: str, buffer_size: int = 100) -> None:
+        """Occasionally log crawl status counts.
+
+        Parse browsertrix log lines with context=crawlStatus, logging the status only
+        every buffer_size count.
+        """
+        try:
+            line_data = json.loads(log_line)
+        except json.JSONDecodeError:
+            return
+
+        details = {
+            k: v
+            for k, v in line_data.get("details", {}).items()
+            if k in ["crawled", "total", "pending", "failed", "limit"]
+        }
+
+        self._crawl_status_details.append(details)
+
+        if len(self._crawl_status_details) == buffer_size:
+            logger.info(self._crawl_status_details[-1])
+            self._crawl_status_details = []
 
     def _copy_config_yaml_local(self) -> None:
         """Download and/or copy config YAML to expected location"""

@@ -100,9 +100,59 @@ def test_metadata_parser_remove_whitespace_fulltext(mocked_parser):
     )
 
 
+def test_metadata_parser_remove_duplicate_urls(mocked_parser):
+    df = pd.DataFrame(
+        {
+            "url": ["https://example.com", "https://example.com", "https://other.com"],
+            "cdx_offset": [100, 200, 150],
+        }
+    )
+    result = mocked_parser._remove_duplicate_urls(df)
+    assert len(result) == 2
+    assert (
+        result[result["url"] == "https://example.com"]["cdx_offset"].to_numpy()[0] == 200
+    )
+
+
 def test_metadata_parser_generate_keywords(mocked_parser):
     fulltext = "My favorite colors are: green, red, blue, and orange."
     with patch("yake.KeywordExtractor.extract_keywords") as mocked_keyword_extractor:
         mocked_keyword_extractor.return_value = [("green", "0.5"), ("red", "0.5")]
         keywords = mocked_parser._generate_fulltext_keywords(fulltext)
         assert keywords == "green,red"
+
+
+def test_metadata_parser_parse_fulltext_fields_include_fulltext(mocked_parser):
+    fields = mocked_parser.parse_fulltext_fields(
+        "Hello world!\nTest text.", include_fulltext=True, extract_fulltext_keywords=False
+    )
+    assert fields["fulltext"] == "Hello world! Test text."
+    assert fields["fulltext_keywords"] is None
+
+
+def test_metadata_parser_parse_fulltext_fields_extract_keywords(mocked_parser):
+    with patch("yake.KeywordExtractor.extract_keywords") as mock_extractor:
+        mock_extractor.return_value = [("hello", "0.5"), ("world", "0.5")]
+        fields = mocked_parser.parse_fulltext_fields(
+            "Hello world!", include_fulltext=False, extract_fulltext_keywords=True
+        )
+    assert fields["fulltext"] is None
+    assert fields["fulltext_keywords"] == "hello,world"
+
+
+def test_metadata_parser_parse_fulltext_fields_both_flags(mocked_parser):
+    with patch("yake.KeywordExtractor.extract_keywords") as mock_extractor:
+        mock_extractor.return_value = [("test", "0.5")]
+        fields = mocked_parser.parse_fulltext_fields(
+            "Test text", include_fulltext=True, extract_fulltext_keywords=True
+        )
+    assert fields["fulltext"] == "Test text"
+    assert fields["fulltext_keywords"] == "test"
+
+
+def test_metadata_parser_parse_fulltext_fields_no_flags(mocked_parser):
+    fields = mocked_parser.parse_fulltext_fields(
+        "Hello world!", include_fulltext=False, extract_fulltext_keywords=False
+    )
+    assert fields["fulltext"] is None
+    assert fields["fulltext_keywords"] is None

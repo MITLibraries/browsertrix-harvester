@@ -208,3 +208,24 @@ def test_cli_generate_metadata_records_jsonlines(caplog, runner):
     assert "Parsing WACZ archive file" in caplog.text
     assert mock_generate_metadata.called
     assert "Metadata records successfully written" in caplog.text
+
+
+def test_cli_generate_metadata_records_with_fulltext_flags(runner):
+    with patch(
+        "harvester.metadata.CrawlMetadataParser.generate_metadata",
+    ) as mock_generate_metadata:
+        runner.invoke(
+            main,
+            [
+                "generate-metadata-records",
+                "--wacz-input-file",
+                "tests/fixtures/homepage.wacz",
+                "--metadata-output-file",
+                "/tmp/records.xml",
+                "--include-fulltext",
+                "--extract-fulltext-keywords",
+            ],
+        )
+        mock_generate_metadata.assert_called_once_with(
+            include_fulltext=True, extract_fulltext_keywords=True
+        )

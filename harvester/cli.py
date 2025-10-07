@@ -89,7 +89,7 @@ def parse_url_content(wacz_input_file: str, url: str) -> None:
 )
 @click.option(
     "--metadata-output-file",
-    required=False,
+    required=True,
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
     "[jsonl, xml,tsv,csv].",
@@ -99,12 +99,18 @@ def parse_url_content(wacz_input_file: str, url: str) -> None:
     is_flag=True,
     help="Set to include parsed fulltext from website in generated structured metadata.",
 )
+@click.option(
+    "--extract-fulltext-keywords",
+    is_flag=True,
+    help="Set to use YAKE to extract keywords from fulltext.",
+)
 @click.pass_context
 def generate_metadata_records(
     ctx: click.Context,
     wacz_input_file: str,
     metadata_output_file: str,
     include_fulltext: bool,
+    extract_fulltext_keywords: bool,
 ) -> None:
     """Generate metadata records from a WACZ file.
 
@@ -115,9 +121,11 @@ def generate_metadata_records(
     """
     logger.info("Parsing WACZ archive file")
     parser = CrawlMetadataParser(wacz_input_file)
-    parser.generate_metadata(include_fulltext=include_fulltext).write(
-        metadata_output_file
+    crawl_metadata_records = parser.generate_metadata(
+        include_fulltext=include_fulltext,
+        extract_fulltext_keywords=extract_fulltext_keywords,
     )
+    crawl_metadata_records.write(metadata_output_file)
     logger.info("Metadata records successfully written")
     logger.info(
         "Total elapsed: %s",
@@ -168,6 +176,11 @@ def generate_metadata_records(
     help="Set to include parsed fulltext from website in generated structured metadata.",
 )
 @click.option(
+    "--extract-fulltext-keywords",
+    is_flag=True,
+    help="Set to use YAKE to extract keywords from fulltext.",
+)
+@click.option(
     "--num-workers",
     default=2,
     required=False,
@@ -192,6 +205,7 @@ def harvest(
     wacz_output_file: str,
     metadata_output_file: str,
     include_fulltext: bool,
+    extract_fulltext_keywords: bool,
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
@@ -230,9 +244,11 @@ def harvest(
     if metadata_output_file:
         logger.info("Parsing WACZ archive file")
         parser = CrawlMetadataParser(crawler.wacz_filepath)
-        parser.generate_metadata(include_fulltext=include_fulltext).write(
-            metadata_output_file
+        crawl_metadata_records = parser.generate_metadata(
+            include_fulltext=include_fulltext,
+            extract_fulltext_keywords=extract_fulltext_keywords,
         )
+        crawl_metadata_records.write(metadata_output_file)
         logger.info("Metadata records successfully written")
 
     logger.info(
