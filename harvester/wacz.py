@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import zipfile
+from collections.abc import Generator
 from contextlib import contextmanager
 from types import TracebackType
 from typing import IO
@@ -40,7 +41,7 @@ class WACZClient:
     """
 
     PAGES_FILEPATHS = ("pages/pages.jsonl", "pages/extraPages.jsonl")
-    CDX_INDEX_FILEPATH = "indexes/index.cdx.gz"
+    CDX_INDEX_FILEPATH = ("indexes/index.cdx.gz", "indexes/index.cdxj")
     WARC_DIR = "archive"
 
     def __init__(self, wacz_filepath: str):
@@ -121,6 +122,10 @@ class WACZClient:
                     file_obj.readline()  # skip first line
                     pages_df = pd.read_json(file_obj, lines=True)
 
+                    # skip if pages file is empty
+                    if len(pages_df) == 0:
+                        continue
+
                     # filter out sitemap related pages
                     pages_df = pages_df[~pages_df.url.str.endswith("sitemap.html")]
                     pages_df = pages_df[~pages_df.url.str.endswith("sitemap.xml")]
@@ -147,14 +152,36 @@ class WACZClient:
         like status codes, mimetypes, and specific length and offsets where request
         response can be found in the '/archive' WARC files.
         """
-        with self._get_archive_file_object(
-            self.CDX_INDEX_FILEPATH
-        ) as file_object, gzip.GzipFile(fileobj=file_object) as decompressed_file:
-            lines = decompressed_file.readlines()
+        all_lines = []
+        files_found = []
+
+        for filepath in self.CDX_INDEX_FILEPATH:
+
+            # check if CDX file type exists
+            try:
+                file_object = self._get_archive_file_object(filepath)
+                files_found.append(filepath)
+            except WaczFileDoesNotExist:
+                continue
+
+            # parse compressed and uncompressed CDX files
+            with file_object:
+                if filepath.endswith(".gz"):
+                    with gzip.GzipFile(fileobj=file_object) as decompressed_file:
+                        lines = decompressed_file.readlines()
+                else:
+                    lines = file_object.readlines()
+
+                all_lines.extend(lines)
+
+        if not all_lines:
+            message = f"No CDX index file(s) found, tried: {self.CDX_INDEX_FILEPATH}"
+            raise WaczFileDoesNotExist(message)
+        logger.debug(f"Found CDX index files: {files_found}")
 
         # extract JSON object from each line
         parsed_data = []
-        for bytes_line in lines:
+        for bytes_line in all_lines:
             cdx_line_data = self._parse_cdx_line(bytes_line)
             if cdx_line_data:
                 parsed_data.append(cdx_line_data)
@@ -220,7 +247,7 @@ class WACZClient:
         self,
         warc_filepath: str,
         offset: int,
-    ) -> ArcWarcRecord:
+    ) -> Generator[ArcWarcRecord]:
         """Get a single website (record) from a WARC archive file.
 
         Use of warcio.ArchiveIterator is extremely helpful here.  Data stored in WARC
