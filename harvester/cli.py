@@ -265,19 +265,20 @@ def harvest(
     # handle optional, pre-crawl sitemap parsing
     urls_file = None
     if parse_sitemaps_pre_crawl:
-        sitemaps_parser = SitemapsParser(
-            sitemap_root,
-            sitemap_paths=sitemap_path,
+        sitemaps_parser = SitemapsParser(sitemap_root, sitemap_paths=sitemap_path)
+        sitemaps_parser.parse()
+
+        # create a temporary text file for crawl to use,
+        # limited by from / to dates if passed
+        urls_file = "/tmp/urls.txt"  # noqa: S108
+        sitemaps_parser.write_urls(
+            urls_file,
             sitemap_from_date=sitemap_from_date,
             sitemap_to_date=sitemap_to_date,
         )
-        sitemaps_parser.parse()
 
-        # write a temporary text file for crawl use
-        urls_file = "/tmp/urls.txt"  # noqa: S108
-        sitemaps_parser.write_urls(urls_file)
-
-        # write text file to user requested location to persist after CLI exits
+        # optionally, create a text file containing ALL URLs discovered
+        # this supports future crawls analyzing this snapshot of sitemap URLs
         if sitemap_urls_output_file:
             sitemaps_parser.write_urls(sitemap_urls_output_file)
 
