@@ -6,6 +6,14 @@ disallow_untyped_calls = true
 disallow_untyped_defs = true
 exclude = ["tests/"]
 
+[[tool.mypy.overrides]]
+module = [
+    "dateutil.*",
+    "smart_open.*",
+    "usp.*",
+]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 log_level = "INFO"
 markers = [
@@ -41,6 +49,7 @@ ignore = [
     "D103",
     "D104",
     "D415",
+    "EM102",
     "G004",
     "PLR0912",
     "PLR0913",
@@ -48,6 +57,9 @@ ignore = [
     "PLR2004",
     "PT023",
     "S321",
+    "TD002",
+    "TD003",
+    "TRY003",
 ]
 
 # allow autofix behavior for specified rules

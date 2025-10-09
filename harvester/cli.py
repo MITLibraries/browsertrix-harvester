@@ -13,6 +13,7 @@ import smart_open  # type: ignore[import]
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
 from harvester.metadata import CrawlMetadataParser
+from harvester.sitemaps import SitemapsParser
 from harvester.utils import require_container
 from harvester.wacz import WACZClient
 
@@ -151,11 +152,40 @@ def generate_metadata_records(
     help="Optional override for crawl name. [Default 'crawl-<TIMESTAMP>']",
 )
 @click.option(
+    "--parse-sitemaps-pre-crawl",
+    is_flag=True,
+    help="Set to parse passed sitemaps pre-crawl, generating a file of URLs that will be "
+    "used to seed the crawl.  If set, --sitemap-root is required and --sitemap-path is "
+    "optional.",
+)
+@click.option(
+    "--sitemap-root",
+    required=False,
+    default=None,
+    type=str,
+    help="Root URL for sitemap parsing, e.g. 'https://libraries.mit.edu/'.",
+)
+@click.option(
+    "--sitemap-path",
+    required=False,
+    multiple=True,
+    type=str,
+    help="Path(s) to sitemap files relative to --sitemap-root, can be specified multiple "
+    "times, e.g. 'sitemap.xml', 'news/sitemap.xml', etc.",
+)
+@click.option(
     "--sitemap-from-date",
     required=False,
     default=None,
     type=str,
-    help="YYYY-MM-DD string to filter websites modified after this date in sitemaps",
+    help="YYYY-MM-DD string to filter websites modified on/after this date in sitemaps",
+)
+@click.option(
+    "--sitemap-to-date",
+    required=False,
+    default=None,
+    type=str,
+    help="YYYY-MM-DD string to filter websites modified before this date in sitemaps",
 )
 @click.option(
     "--wacz-output-file",
@@ -169,6 +199,12 @@ def generate_metadata_records(
     help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
     "[jsonl,xml,tsv,csv].",
+)
+@click.option(
+    "--sitemap-urls-output-file",
+    required=False,
+    help="If --parse-sitemaps-pre-crawl is set, optionally write a text file of "
+    "discoveredURLs parsed from sitemap(s).",
 )
 @click.option(
     "--include-fulltext",
@@ -201,9 +237,14 @@ def harvest(
     ctx: click.Context,
     crawl_name: str,
     config_yaml_file: str,
+    parse_sitemaps_pre_crawl: bool,
+    sitemap_root: str,
+    sitemap_path: tuple[str, ...],
     sitemap_from_date: str,
+    sitemap_to_date: str,
     wacz_output_file: str,
     metadata_output_file: str,
+    sitemap_urls_output_file: str,
     include_fulltext: bool,
     extract_fulltext_keywords: bool,
     num_workers: int,
@@ -221,6 +262,26 @@ def harvest(
         logger.error(msg)
         return
 
+    # handle optional, pre-crawl sitemap parsing
+    urls_file = None
+    if parse_sitemaps_pre_crawl:
+        sitemaps_parser = SitemapsParser(
+            sitemap_root,
+            sitemap_paths=sitemap_path,
+            sitemap_from_date=sitemap_from_date,
+            sitemap_to_date=sitemap_to_date,
+        )
+        sitemaps_parser.parse()
+
+        # write a temporary text file for crawl use
+        urls_file = "/tmp/urls.txt"  # noqa: S108
+        sitemaps_parser.write_urls(urls_file)
+
+        # write text file to user requested location to persist after CLI exits
+        if sitemap_urls_output_file:
+            sitemaps_parser.write_urls(sitemap_urls_output_file)
+
+    # instantiate crawler
     logger.info("Preparing for harvest name: '%s'", crawl_name)
     crawler = Crawler(
         crawl_name,
@@ -228,6 +289,7 @@ def harvest(
         sitemap_from_date=sitemap_from_date,
         num_workers=num_workers,
         btrix_args_json=btrix_args_json,
+        urls_file=urls_file,
     )
     crawler.crawl()
     logger.info("Crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)

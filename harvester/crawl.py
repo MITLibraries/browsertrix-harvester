@@ -26,12 +26,14 @@ class Crawler:
         sitemap_from_date: str | None = None,
         num_workers: int = 4,
         btrix_args_json: str | None = None,
+        urls_file: str | None = None,
     ) -> None:
         self.crawl_name = crawl_name
         self.config_yaml_filepath = config_yaml_filepath
         self.sitemap_from_date = sitemap_from_date
         self.num_workers = num_workers
         self.btrix_args_json = btrix_args_json
+        self.urls_file = urls_file
 
         self._crawl_status_details: list[dict] = []
 
@@ -91,9 +93,18 @@ class Crawler:
             for line in process.stdout:
                 line = line.strip()  # noqa: PLW2901
                 if line and line != "":
+                    logger.debug(line)
+
+                    # parse crawlStatus logs and INFO log
                     if '"context":"crawlStatus"' in line:
                         self._log_crawl_count_status(line)
-                    logger.debug(line)
+
+                    # identify fatal logs and raise Runtime exception
+                    if '"logLevel":"fatal"' in line:
+                        raise RuntimeError(
+                            f"Fatal log message detected from crawler, exiting: {line}"
+                        )
+
         if process.stderr:  # pragma: no cover
             for line in process.stderr:
                 line = line.strip()  # noqa: PLW2901
@@ -180,6 +191,12 @@ class Crawler:
             btrix_args["--workers"] = str(self.num_workers)
         if self.sitemap_from_date:
             btrix_args["--sitemapFromDate"] = self.sitemap_from_date
+
+        # use URLs file if passed
+        if self.urls_file:
+            logger.info(f"Seed URLs file passed and applied: {self.urls_file}")
+            btrix_args["--scopeType"] = "page"
+            btrix_args["--urlFile"] = self.urls_file
 
         # lastly, if JSON string of btrix args provided, parse and apply
         if self.btrix_args_json:

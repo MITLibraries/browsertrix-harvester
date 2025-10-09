@@ -1,8 +1,10 @@
 import os
+from datetime import UTC, datetime
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
 from click.testing import CliRunner
+from usp.objects.page import SitemapPage
 
 from harvester.crawl import Crawler
 from harvester.exceptions import WaczFileDoesNotExist
@@ -97,3 +99,25 @@ def _mock_missing_all_wacz_archive_files():
         side_effect=always_raise_wacz_file_not_exists,
     ):
         yield
+
+
+@pytest.fixture
+def mock_sitemap_tree():
+    """Mock sitemap tree with sample pages"""
+    mock_tree = Mock()
+    pages = [
+        SitemapPage(
+            url="https://example.com/page1",
+            last_modified=datetime(2025, 1, 15, tzinfo=UTC),
+        ),
+        SitemapPage(
+            url="https://example.com/page2",
+            last_modified=datetime(2025, 2, 20, tzinfo=UTC),
+        ),
+        SitemapPage(
+            url="https://example.com/page3",
+            last_modified=datetime(2025, 3, 10, tzinfo=UTC),
+        ),
+    ]
+    mock_tree.all_pages.return_value = iter(pages)
+    return mock_tree

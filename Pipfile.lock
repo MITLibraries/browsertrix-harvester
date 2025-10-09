@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9d3e52c8c15da9c482aeeada0d401cb6cf80f9983b27a031b0bf6612b65ce040"
+            "sha256": "28cf28fe73a088377696fa129e16bcf87daeb113b6b94b7e6750f9db88e3a541"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -633,6 +633,15 @@
             ],
             "markers": "python_version >= '2'",
             "version": "==2025.2"
+        },
+        "ultimate-sitemap-parser": {
+            "hashes": [
+                "sha256:5fa1264875e0b04e278e48497d4eafb3b9703a8e21fa2563b7d93b08ba3fcf99",
+                "sha256:ca309b18b5461f3a85f6b5c338e24b5cb7693ba3fffebcebee5f3862a5777662"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.9'",
+            "version": "==1.6.0"
         },
         "urllib3": {
             "hashes": [

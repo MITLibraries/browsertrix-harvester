@@ -1,11 +1,14 @@
 """tests.test_crawler"""
 
+# ruff: noqa: S108
+
 import json
 import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from harvester.crawl import Crawler
 from harvester.exceptions import (
     ConfigYamlError,
     RequiresContainerContextError,
@@ -112,6 +115,20 @@ def test_crawler_build_command(create_mocked_crawler):
     )
 
 
+def test_crawler_build_command_with_urls_file(create_mocked_crawler):
+    crawler = Crawler(
+        crawl_name="test",
+        config_yaml_filepath="path/to/fake_config.yaml",
+        urls_file="/tmp/urls.txt",
+    )
+
+    command = crawler._build_subprocess_command()
+    assert "--scopeType" in command
+    assert "page" in command
+    assert "--urlFile" in command
+    assert "/tmp/urls.txt" in command
+
+
 @pytest.mark.usefixtures("_mock_inside_container", "_mock_wacz_file_exists")
 def test_crawl_success(create_mocked_crawler):
     crawler = create_mocked_crawler()
@@ -143,6 +160,25 @@ def test_crawl_fails_to_create_wacz_raises_error(create_mocked_crawler):
     mock_process.wait.return_value = 0
 
     with pytest.raises(WaczFileDoesNotExist), patch(
+        "subprocess.Popen", return_value=mock_process
+    ):
+        crawler.crawl()
+
+
+@pytest.mark.usefixtures("_mock_inside_container")
+def test_crawl_fatal_log_raises_runtime_error(create_mocked_crawler):
+    crawler = create_mocked_crawler()
+
+    stdouts = ['{"logLevel":"fatal","message":"Fatal error occurred"}']
+
+    mock_process = MagicMock()
+    mock_process.__enter__.return_value = mock_process
+    mock_process.__exit__.return_value = None
+    mock_process.stdout = iter(stdouts)
+    mock_process.stderr = iter([])
+    mock_process.wait.return_value = 0
+
+    with pytest.raises(RuntimeError, match="Fatal log message detected"), patch(
         "subprocess.Popen", return_value=mock_process
     ):
         crawler.crawl()
