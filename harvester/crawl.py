@@ -24,6 +24,7 @@ class Crawler:
         crawl_name: str,
         config_yaml_filepath: str,
         sitemap_from_date: str | None = None,
+        sitemap_to_date: str | None = None,
         num_workers: int = 4,
         btrix_args_json: str | None = None,
         urls_file: str | None = None,
@@ -31,6 +32,7 @@ class Crawler:
         self.crawl_name = crawl_name
         self.config_yaml_filepath = config_yaml_filepath
         self.sitemap_from_date = sitemap_from_date
+        self.sitemap_to_date = sitemap_to_date
         self.num_workers = num_workers
         self.btrix_args_json = btrix_args_json
         self.urls_file = urls_file
@@ -174,10 +176,7 @@ class Crawler:
         overridden in that order, then serialized as a flat list for OS command.
         """
         # build base command
-        cmd = [
-            "crawl",
-            "--useSitemap",
-        ]
+        cmd = ["crawl"]
 
         # default args
         btrix_args = {
@@ -191,6 +190,8 @@ class Crawler:
             btrix_args["--workers"] = str(self.num_workers)
         if self.sitemap_from_date:
             btrix_args["--sitemapFromDate"] = self.sitemap_from_date
+        if self.sitemap_to_date:
+            btrix_args["--sitemapToDate"] = self.sitemap_to_date
 
         # use URLs file if passed
         if self.urls_file:
