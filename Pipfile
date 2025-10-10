@@ -13,6 +13,7 @@ sentry-sdk = "*"
 smart-open = {version = "*", extras = ["s3"]}
 warcio = "*"
 yake = "*"
+ultimate-sitemap-parser = "*"
 
 [dev-packages]
 black = "*"

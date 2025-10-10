@@ -160,29 +160,48 @@ Usage: -c harvest [OPTIONS]
   file.
 
 Options:
-  --config-yaml-file TEXT      Filepath of browsertrix config YAML. Can be a
-                               local filepath or an S3 URI, e.g.
-                               s3://bucketname/crawl-config.yaml  [required]
-  --crawl-name TEXT            Optional override for crawl name. [Default
-                               'crawl-<TIMESTAMP>']
-  --sitemap-from-date TEXT     YYYY-MM-DD string to filter websites modified
-                               after this date in sitemaps
-  --wacz-output-file TEXT      Filepath to write WACZ archive file to. Can be
-                               a local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.jsonl.
-  --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
-                               local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.jsonl.  Supported file
-                               type extensions: [jsonl,xml,tsv,csv].
-  --include-fulltext           Set to include parsed fulltext from website in
-                               generated structured metadata.
-  --num-workers INTEGER        Number of parallel thread workers for crawler.
-                               [Default 2]
-  --btrix-args-json TEXT       JSON formatted string of additional args to
-                               pass to browsertrix-crawler,
-                               https://github.com/webrecorder/browsertrix-
-                               crawler#crawling-configuration-options
-  -h, --help                   Show this message and exit.
+  --config-yaml-file TEXT         Filepath of browsertrix config YAML. Can be
+                                  a local filepath or an S3 URI, e.g.
+                                  s3://bucketname/crawl-config.yaml
+                                  [required]
+  --crawl-name TEXT               Optional override for crawl name. [Default
+                                  'crawl-<TIMESTAMP>']
+  --parse-sitemaps-pre-crawl      Set to parse passed sitemaps pre-crawl,
+                                  generating a file of URLs that will be used
+                                  to seed the crawl.  If set, --sitemap-root
+                                  is required and --sitemap-path is optional.
+  --sitemap-root TEXT             Root URL for sitemap parsing, e.g.
+                                  'https://libraries.mit.edu/'.
+  --sitemap-path TEXT             Path(s) to sitemap files relative to
+                                  --sitemap-root, can be specified multiple
+                                  times, e.g. 'sitemap.xml',
+                                  'news/sitemap.xml', etc.
+  --sitemap-from-date TEXT        YYYY-MM-DD string to filter websites
+                                  modified on/after this date in sitemaps
+  --sitemap-to-date TEXT          YYYY-MM-DD string to filter websites
+                                  modified before this date in sitemaps
+  --wacz-output-file TEXT         Filepath to write WACZ archive file to. Can
+                                  be a local filepath or an S3 URI, e.g.
+                                  s3://bucketname/filename.jsonl.
+  --metadata-output-file TEXT     Filepath to write metadata records to. Can
+                                  be a local filepath or an S3 URI, e.g.
+                                  s3://bucketname/filename.jsonl.  Supported
+                                  file type extensions: [jsonl,xml,tsv,csv].
+  --sitemap-urls-output-file TEXT
+                                  If --parse-sitemaps-pre-crawl is set,
+                                  optionally write a text file of
+                                  discoveredURLs parsed from sitemap(s).
+  --include-fulltext              Set to include parsed fulltext from website
+                                  in generated structured metadata.
+  --extract-fulltext-keywords     Set to use YAKE to extract keywords from
+                                  fulltext.
+  --num-workers INTEGER           Number of parallel thread workers for
+                                  crawler. [Default 2]
+  --btrix-args-json TEXT          JSON formatted string of additional args to
+                                  pass to browsertrix-crawler,
+                                  https://github.com/webrecorder/browsertrix-
+                                  crawler#crawling-configuration-options
+  -h, --help                      Show this message and exit.
 ```
     
 ## Browsertrix Crawl Configuration

@@ -229,3 +229,68 @@ def test_cli_generate_metadata_records_with_fulltext_flags(runner):
         mock_generate_metadata.assert_called_once_with(
             include_fulltext=True, extract_fulltext_keywords=True
         )
+
+
+@pytest.mark.usefixtures("_mock_inside_container")
+def test_cli_harvest_with_sitemap_options(caplog, runner):
+    with patch("harvester.crawl.Crawler.crawl"), patch(
+        "harvester.sitemaps.SitemapsParser.parse"
+    ), patch("harvester.sitemaps.SitemapsParser.write_urls") as mock_write_urls, patch(
+        "harvester.crawl.Crawler._build_subprocess_command"
+    ) as mock_build_command, patch.object(
+        smart_open, "open", mock_open()
+    ):
+        mock_build_command.return_value = ["crawl", "--collection", "sitemap-test"]
+        runner.invoke(
+            main,
+            [
+                "--verbose",
+                "harvest",
+                "--crawl-name",
+                "sitemap-test",
+                "--config-yaml-file",
+                "tests/fixtures/lib-website-homepage.yaml",
+                "--wacz-output-file",
+                "/tmp/sitemap-test.wacz",
+                "--parse-sitemaps-pre-crawl",
+                "--sitemap-root",
+                "https://example.com",
+                "--sitemap-path",
+                "/sitemap.xml",
+                "--sitemap-from-date",
+                "2025-01-01",
+            ],
+        )
+
+        assert mock_write_urls.call_count == 1
+
+
+@pytest.mark.usefixtures("_mock_inside_container")
+def test_cli_harvest_with_sitemap_urls_output_file(caplog, runner):
+    with patch("harvester.crawl.Crawler.crawl"), patch(
+        "harvester.sitemaps.SitemapsParser.parse"
+    ), patch(
+        "harvester.sitemaps.SitemapsParser.write_urls"
+    ) as mock_write_urls, patch.object(
+        smart_open, "open", mock_open()
+    ):
+        runner.invoke(
+            main,
+            [
+                "--verbose",
+                "harvest",
+                "--crawl-name",
+                "sitemap-test",
+                "--config-yaml-file",
+                "tests/fixtures/lib-website-homepage.yaml",
+                "--wacz-output-file",
+                "/tmp/sitemap-test.wacz",
+                "--parse-sitemaps-pre-crawl",
+                "--sitemap-root",
+                "https://example.com",
+                "--sitemap-urls-output-file",
+                "/tmp/sitemap-urls.txt",
+            ],
+        )
+
+        assert mock_write_urls.call_count == 2
