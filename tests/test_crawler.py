@@ -88,7 +88,6 @@ def test_crawler_build_command(create_mocked_crawler):
         crawler.crawl_name,
         "--config",
         crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
-        "--useSitemap",
         "--logging",
         "stats",
         "--workers",
@@ -104,7 +103,15 @@ def test_crawler_build_command(create_mocked_crawler):
     from_date = "1979-01-01"
     crawler.sitemap_from_date = from_date
     command = crawler._build_subprocess_command()
-    assert set(command) == base_args.union({"--sitemapFromDate", from_date})
+    assert "--sitemapFromDate" in command
+    assert "1979-01-01" in command
+
+    # assert when sitemap_to_date is included
+    to_date = "1979-01-02"
+    crawler.sitemap_to_date = to_date
+    command = crawler._build_subprocess_command()
+    assert "--sitemapToDate" in command
+    assert "1979-01-02" in command
 
     # assert inclusion of misc btrix args JSON
     crawler = create_mocked_crawler()

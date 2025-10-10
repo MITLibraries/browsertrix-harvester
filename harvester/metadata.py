@@ -86,11 +86,19 @@ class CrawlMetadataParser:
         *,
         include_fulltext: bool = False,
         extract_fulltext_keywords: bool = False,
+        urls_file: str | None = None,
+        previous_sitemap_urls_file: str | None = None,
     ) -> "CrawlMetadataRecords":
         """Generate dataframe of metadata records from websites crawled in WACZ file.
 
         This combines metadata from the crawl (e.g. URL, extracted fulltext), and
         metadata extracted from the HTML content itself.
+
+        Args:
+            include_fulltext: #TODO: complete
+            extract_fulltext_keywords: #TODO: complete
+            urls_file: #TODO: complete
+            previous_sitemap_urls_file: #TODO: complete
         """
         logger.info("Generating metadata records from crawl")
 
@@ -98,8 +106,10 @@ class CrawlMetadataParser:
         if self._websites_metadata:
             return self._websites_metadata
 
+        all_metadata = []
+
+        # add metadata records from the crawl (new or modified sites)
         with WACZClient(self.wacz_filepath) as wacz_client:
-            all_metadata = []
             t0 = time.time()
             row_count = len(wacz_client.html_websites_df)
 
@@ -115,6 +125,7 @@ class CrawlMetadataParser:
                 # init website metadata dictionary with data already known from WACZ files
                 metadata = {
                     "url": row.url,
+                    "status": "active",
                     "cdx_warc_filename": row.filename,
                     "cdx_title": row.title,
                     "cdx_offset": row.offset,
@@ -139,6 +150,14 @@ class CrawlMetadataParser:
 
                 all_metadata.append(metadata)
 
+        # add status=deleted metadata records if current and previous URL lists are passed
+        if urls_file and previous_sitemap_urls_file:
+            all_metadata.extend(
+                self._generate_metadata_for_deleted_urls(
+                    urls_file, previous_sitemap_urls_file
+                )
+            )
+
         # create dataframe from all dictionaries
         websites_metadata_df = pd.DataFrame(all_metadata)
 
@@ -150,10 +169,51 @@ class CrawlMetadataParser:
         # remove duplicate URLs
         websites_metadata_df = self._remove_duplicate_urls(websites_metadata_df)
 
+        logger.info(f"{len(websites_metadata_df)} metadata records generated.")
+
         # init instance of CrawlMetadataRecords and cache
         self._websites_metadata = CrawlMetadataRecords(websites_metadata_df)
 
         return self._websites_metadata
+
+    def _generate_metadata_for_deleted_urls(
+        self, current_urls_filepath: str, previous_urls_filepath: str
+    ) -> list[dict]:
+        """Generate metadata records for URLs that have been removed since last crawl.
+
+        If the previous list of URLs is not retrievable for any reason, this method
+        defaults to yielding zero deleted records.
+        """
+        logger.info(
+            "Analyzing previous and current sitemap discovered URLs for deletions."
+        )
+
+        # open local list of URLs from this crawl's sitemap parsing
+        with open(current_urls_filepath) as f:
+            current_urls = [line.strip() for line in f]
+
+        # open local/remote list of URLs from a previous crawl's sitemap parsing
+        try:
+            with smart_open.open(previous_urls_filepath) as f:
+                previous_urls = [line.strip() for line in f]
+        except (FileNotFoundError, OSError) as exc:
+            logger.error(  # noqa: TRY400
+                "Unable to retrieve previous list of URLs at: "
+                f"'{previous_urls_filepath}', error: '{exc}'"
+            )
+            return []
+
+        deleted_urls = list(set(previous_urls).difference(set(current_urls)))
+        logger.info(f"Creating {len(deleted_urls)} status=deleted metadata records.")
+
+        return [
+            {
+                "url": url,
+                "status": "deleted",
+            }
+            for url in deleted_urls
+            if url and url != ""
+        ]
 
     @classmethod
     def get_html_content_metadata(cls, html_content: str | bytes) -> dict:

@@ -191,6 +191,12 @@ Options:
                                   If --parse-sitemaps-pre-crawl is set,
                                   optionally write a text file of
                                   discoveredURLs parsed from sitemap(s).
+  --previous-sitemap-urls-file TEXT
+                                  If passed, a previous file with all URLs
+                                  from sitemap parsing will be read and used
+                                  to determine if URLs have since been removed
+                                  and should be marked as 'deleted' as an
+                                  output metadata record.
   --include-fulltext              Set to include parsed fulltext from website
                                   in generated structured metadata.
   --extract-fulltext-keywords     Set to use YAKE to extract keywords from

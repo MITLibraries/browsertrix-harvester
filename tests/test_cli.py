@@ -262,7 +262,7 @@ def test_cli_harvest_with_sitemap_options(caplog, runner):
             ],
         )
 
-        assert mock_write_urls.call_count == 1
+        assert mock_write_urls.call_count == 2
 
 
 @pytest.mark.usefixtures("_mock_inside_container")

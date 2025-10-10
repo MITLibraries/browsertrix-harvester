@@ -156,3 +156,64 @@ def test_metadata_parser_parse_fulltext_fields_no_flags(mocked_parser):
     )
     assert fields["fulltext"] is None
     assert fields["fulltext_keywords"] is None
+
+
+def test_metadata_parser_generate_metadata_for_deleted_urls(mocked_parser, tmp_path):
+    current_urls_file = tmp_path / "current_urls.txt"
+    previous_urls_file = tmp_path / "previous_urls.txt"
+
+    current_urls_file.write_text("https://example.com/page1\nhttps://example.com/page2\n")
+    previous_urls_file.write_text(
+        "https://example.com/page1\nhttps://example.com/page2\n"
+        "https://example.com/deleted\n"
+    )
+
+    deleted_records = mocked_parser._generate_metadata_for_deleted_urls(
+        str(current_urls_file), str(previous_urls_file)
+    )
+
+    assert len(deleted_records) == 1
+    assert deleted_records[0] == {
+        "url": "https://example.com/deleted",
+        "status": "deleted",
+    }
+
+
+def test_metadata_parser_generate_metadata_for_deleted_urls_file_not_found(
+    mocked_parser, tmp_path, caplog
+):
+    current_urls_file = tmp_path / "current_urls.txt"
+    current_urls_file.write_text("https://example.com/page1\n")
+
+    deleted_records = mocked_parser._generate_metadata_for_deleted_urls(
+        str(current_urls_file), "nonexistent_file.txt"
+    )
+
+    assert len(deleted_records) == 0
+    assert "Unable to retrieve previous list of URLs" in caplog.text
+
+
+def test_metadata_parser_generate_metadata_invokes_deleted_urls(
+    mocked_parser, mocked_wacz_client, tmp_path
+):
+    current_urls_file = tmp_path / "current_urls.txt"
+    previous_urls_file = tmp_path / "previous_urls.txt"
+
+    current_urls_file.write_text("https://libraries.mit.edu/\n")
+    previous_urls_file.write_text(
+        "https://libraries.mit.edu/\nhttps://example.com/deleted\n"
+    )
+
+    with patch("harvester.metadata.WACZClient", return_value=mocked_wacz_client):
+        crawl_metadata_records = mocked_parser.generate_metadata(
+            urls_file=str(current_urls_file),
+            previous_sitemap_urls_file=str(previous_urls_file),
+        )
+
+    df = crawl_metadata_records.metadata_df
+    deleted_rows = df[df["status"] == "deleted"]
+    active_rows = df[df["status"] == "active"]
+
+    assert len(deleted_rows) == 1
+    assert deleted_rows.iloc[0]["url"] == "https://example.com/deleted"
+    assert len(active_rows) >= 1

@@ -19,6 +19,9 @@ from harvester.wacz import WACZClient
 
 logger = logging.getLogger(__name__)
 
+CRAWL_SITEMAP_URLS_FILEPATH = "/tmp/urls.txt"  # noqa: S108
+ALL_SITEMAP_URLS_FILEPATH = "/tmp/urls-all.txt"  # noqa: S108
+
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option(
@@ -207,6 +210,13 @@ def generate_metadata_records(
     "discoveredURLs parsed from sitemap(s).",
 )
 @click.option(
+    "--previous-sitemap-urls-file",
+    required=False,
+    help="If passed, a previous file with all URLs from sitemap parsing will be read and "
+    "used to determine if URLs have since been removed and should be marked as "
+    "'deleted' as an output metadata record.",
+)
+@click.option(
     "--include-fulltext",
     is_flag=True,
     help="Set to include parsed fulltext from website in generated structured metadata.",
@@ -245,6 +255,7 @@ def harvest(
     wacz_output_file: str,
     metadata_output_file: str,
     sitemap_urls_output_file: str,
+    previous_sitemap_urls_file: str,
     include_fulltext: bool,
     extract_fulltext_keywords: bool,
     num_workers: int,
@@ -268,19 +279,16 @@ def harvest(
         sitemaps_parser = SitemapsParser(sitemap_root, sitemap_paths=sitemap_path)
         sitemaps_parser.parse()
 
-        # create a temporary text file for crawl to use,
-        # limited by from / to dates if passed
-        urls_file = "/tmp/urls.txt"  # noqa: S108
+        # create a local, temporary URLs file for crawl use, optionally limited by dates
         sitemaps_parser.write_urls(
-            urls_file,
+            CRAWL_SITEMAP_URLS_FILEPATH,
             sitemap_from_date=sitemap_from_date,
             sitemap_to_date=sitemap_to_date,
         )
+        urls_file = CRAWL_SITEMAP_URLS_FILEPATH
 
-        # optionally, create a text file containing ALL URLs discovered
-        # this supports future crawls analyzing this snapshot of sitemap URLs
-        if sitemap_urls_output_file:
-            sitemaps_parser.write_urls(sitemap_urls_output_file)
+        # write all discovered sitemap URLs to a local, temporary file
+        sitemaps_parser.write_urls(ALL_SITEMAP_URLS_FILEPATH)
 
     # instantiate crawler
     logger.info("Preparing for harvest name: '%s'", crawl_name)
@@ -288,6 +296,7 @@ def harvest(
         crawl_name,
         config_yaml_file,
         sitemap_from_date=sitemap_from_date,
+        sitemap_to_date=sitemap_to_date,
         num_workers=num_workers,
         btrix_args_json=btrix_args_json,
         urls_file=urls_file,
@@ -310,9 +319,26 @@ def harvest(
         crawl_metadata_records = parser.generate_metadata(
             include_fulltext=include_fulltext,
             extract_fulltext_keywords=extract_fulltext_keywords,
+            urls_file=ALL_SITEMAP_URLS_FILEPATH,
+            previous_sitemap_urls_file=previous_sitemap_urls_file,
         )
         crawl_metadata_records.write(metadata_output_file)
         logger.info("Metadata records successfully written")
+
+    # optionally, create a text file containing ALL URLs discovered
+    # this supports future crawls analyzing this snapshot of sitemap URLs
+    if sitemap_urls_output_file:
+        if not os.path.exists(ALL_SITEMAP_URLS_FILEPATH):
+            logger.error(
+                "Cannot write sitemap URLs: /tmp/urls-all.txt not found. "
+                "Ensure --parse-sitemaps-pre-crawl is set."
+            )
+        else:
+            logger.info("Writing all sitemap URLs to: %s", sitemap_urls_output_file)
+            with open(ALL_SITEMAP_URLS_FILEPATH) as urls_in, smart_open.open(
+                sitemap_urls_output_file, "w"
+            ) as urls_out:
+                urls_out.write(urls_in.read())
 
     logger.info(
         "Total elapsed: %s",
