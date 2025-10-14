@@ -1,9 +1,10 @@
 """harvester.sitemaps"""
 
 import logging
-from collections.abc import Iterable
+from collections import defaultdict
 from datetime import UTC
 from pathlib import Path
+from urllib.parse import urlparse
 
 import smart_open
 from dateutil.parser import parse as dateutil_parse
@@ -18,22 +19,18 @@ class SitemapsParser:
 
     def __init__(
         self,
-        sitemap_root: str,
-        sitemap_paths: Iterable[str] | None = None,
+        sitemaps: list[str] | tuple[str, ...],
         sitemap_from_date: str | None = None,
         sitemap_to_date: str | None = None,
     ):
         """Init.
 
         Args:
-            sitemap_root: root location for of sitemaps, e.g. https://libraries.mit.edu/
-            sitemap_paths: relative path of sitemaps from sitemap_root,
-                e.g. /foo/sitemap.xml
+            sitemaps: iterable of full sitemaps paths
             sitemap_from_date: optional date filter used when returning parsed pages
             sitemap_to_date: optional date filter used when returning parsed pages
         """
-        self.sitemap_root = sitemap_root
-        self.sitemap_paths = sitemap_paths
+        self.sitemaps = sitemaps
         self.sitemap_from_date = sitemap_from_date
         self.sitemap_to_date = sitemap_to_date
         self._pages: list[SitemapPage] | None = None
@@ -77,14 +74,44 @@ class SitemapsParser:
         return _pages
 
     def parse(self) -> None:
-        """Parse sitemaps from root + extra paths."""
-        logger.info("Parsing sitemaps")
-        tree = sitemap_tree_for_homepage(
-            self.sitemap_root,
-            extra_known_paths=set(self.sitemap_paths or []),
-        )
-        self._pages = list(tree.all_pages())
-        logger.info(f"{len(self._pages)} URLs discovered from sitemap(s)")
+        """Parse sitemaps list of provided sitemaps."""
+        logger.info(f"Parsing {len(self.sitemaps)} sitemaps")
+
+        # create dictionary of domain:path for all sitemaps
+        root_to_paths = defaultdict(set)
+        for sitemap in self.sitemaps:
+            root, path = self._parse_sitemap_components(sitemap)
+            root_to_paths[root].add(path)
+
+        _pages = []
+        for root, paths in root_to_paths.items():
+            tree = sitemap_tree_for_homepage(
+                root,
+                extra_known_paths=paths,
+            )
+            sitemap_pages = list(tree.all_pages())
+            logger.info(
+                f"Discovered {len(sitemap_pages)} URLs from sitemap root: {root}, "
+                f"paths: {paths}"
+            )
+            _pages.extend(sitemap_pages)
+
+        self._pages = list(set(_pages))
+        logger.info(f"{len(self._pages)} total URLs discovered")
+
+    def _parse_sitemap_components(self, sitemap: str) -> tuple[str, str]:
+        """Parse a URL into (root, path) tuple.
+
+        Args:
+            sitemap: Full URL string
+
+        Returns:
+            tuple: (root_url, path) where root_url is scheme://netloc
+        """
+        parsed = urlparse(sitemap)
+        root = f"{parsed.scheme}://{parsed.netloc}"
+        path = parsed.path
+        return root, path
 
     def write_urls(
         self,

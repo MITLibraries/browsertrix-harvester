@@ -166,16 +166,11 @@ Options:
                                   [required]
   --crawl-name TEXT               Optional override for crawl name. [Default
                                   'crawl-<TIMESTAMP>']
-  --parse-sitemaps-pre-crawl      Set to parse passed sitemaps pre-crawl,
-                                  generating a file of URLs that will be used
-                                  to seed the crawl.  If set, --sitemap-root
-                                  is required and --sitemap-path is optional.
-  --sitemap-root TEXT             Root URL for sitemap parsing, e.g.
-                                  'https://libraries.mit.edu/'.
-  --sitemap-path TEXT             Path(s) to sitemap files relative to
-                                  --sitemap-root, can be specified multiple
-                                  times, e.g. 'sitemap.xml',
-                                  'news/sitemap.xml', etc.
+  --sitemap TEXT                  Sitemap URL to parse and then provide the
+                                  crawler with an explicit list of URLs as
+                                  seeds, e.g.
+                                  'https://libraries.mit.edu/sitemap.xml'.
+                                  Repeatable.
   --sitemap-from-date TEXT        YYYY-MM-DD string to filter websites
                                   modified on/after this date in sitemaps
   --sitemap-to-date TEXT          YYYY-MM-DD string to filter websites
@@ -256,7 +251,7 @@ Metadata is extracted in the following way:
 3. HTML content for each website is parsed from the WARC files
 4. Additional metadata is extracted from that HTML content
 5. The original dataframe of websites is extended with this additional metadata generated from the HTML 
-6. Lastly, this is written locally, or to S3, as an XML, TSV, or CSV file
+6. Lastly, this is written locally, or to S3, as a JSONLines, XML, TSV, or CSV file
 
 An example record from an XML output file looks like this:
 ```xml

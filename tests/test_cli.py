@@ -252,11 +252,8 @@ def test_cli_harvest_with_sitemap_options(caplog, runner):
                 "tests/fixtures/lib-website-homepage.yaml",
                 "--wacz-output-file",
                 "/tmp/sitemap-test.wacz",
-                "--parse-sitemaps-pre-crawl",
-                "--sitemap-root",
-                "https://example.com",
-                "--sitemap-path",
-                "/sitemap.xml",
+                "--sitemap",
+                "https://example.com/sitemap.xml",
                 "--sitemap-from-date",
                 "2025-01-01",
             ],
@@ -273,6 +270,8 @@ def test_cli_harvest_with_sitemap_urls_output_file(caplog, runner):
         "harvester.sitemaps.SitemapsParser.write_urls"
     ) as mock_write_urls, patch.object(
         smart_open, "open", mock_open()
+    ), patch(
+        "os.path.exists", return_value=True
     ):
         runner.invoke(
             main,
@@ -285,9 +284,8 @@ def test_cli_harvest_with_sitemap_urls_output_file(caplog, runner):
                 "tests/fixtures/lib-website-homepage.yaml",
                 "--wacz-output-file",
                 "/tmp/sitemap-test.wacz",
-                "--parse-sitemaps-pre-crawl",
-                "--sitemap-root",
-                "https://example.com",
+                "--sitemap",
+                "https://example.com/sitemap.xml",
                 "--sitemap-urls-output-file",
                 "/tmp/sitemap-urls.txt",
             ],

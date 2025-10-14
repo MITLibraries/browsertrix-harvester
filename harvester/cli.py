@@ -155,26 +155,13 @@ def generate_metadata_records(
     help="Optional override for crawl name. [Default 'crawl-<TIMESTAMP>']",
 )
 @click.option(
-    "--parse-sitemaps-pre-crawl",
-    is_flag=True,
-    help="Set to parse passed sitemaps pre-crawl, generating a file of URLs that will be "
-    "used to seed the crawl.  If set, --sitemap-root is required and --sitemap-path is "
-    "optional.",
-)
-@click.option(
-    "--sitemap-root",
-    required=False,
-    default=None,
-    type=str,
-    help="Root URL for sitemap parsing, e.g. 'https://libraries.mit.edu/'.",
-)
-@click.option(
-    "--sitemap-path",
+    "--sitemap",
+    "sitemaps",
     required=False,
     multiple=True,
     type=str,
-    help="Path(s) to sitemap files relative to --sitemap-root, can be specified multiple "
-    "times, e.g. 'sitemap.xml', 'news/sitemap.xml', etc.",
+    help="Sitemap URL to parse and then provide the crawler with an explicit list of "
+    "URLs as seeds, e.g. 'https://libraries.mit.edu/sitemap.xml'. Repeatable.",
 )
 @click.option(
     "--sitemap-from-date",
@@ -247,9 +234,7 @@ def harvest(
     ctx: click.Context,
     crawl_name: str,
     config_yaml_file: str,
-    parse_sitemaps_pre_crawl: bool,
-    sitemap_root: str,
-    sitemap_path: tuple[str, ...],
+    sitemaps: tuple[str, ...],
     sitemap_from_date: str,
     sitemap_to_date: str,
     wacz_output_file: str,
@@ -275,8 +260,8 @@ def harvest(
 
     # handle optional, pre-crawl sitemap parsing
     urls_file = None
-    if parse_sitemaps_pre_crawl:
-        sitemaps_parser = SitemapsParser(sitemap_root, sitemap_paths=sitemap_path)
+    if sitemaps:
+        sitemaps_parser = SitemapsParser(sitemaps)
         sitemaps_parser.parse()
 
         # create a local, temporary URLs file for crawl use, optionally limited by dates
