@@ -17,3 +17,4 @@ scopeType: "domain"
 seeds:
   - url: https://www-test.libraries.mit.edu/sitemap.xml
     sitemap: https://www-test.libraries.mit.edu/sitemap.xml
+workers: 8

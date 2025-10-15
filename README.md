@@ -197,12 +197,15 @@ Options:
   --extract-fulltext-keywords     Set to use YAKE to extract keywords from
                                   fulltext.
   --num-workers INTEGER           Number of parallel thread workers for
-                                  crawler. [Default 2]
+                                  crawler. Crawler defaults to 1 if not set
+                                  here, in the configuration YAML, or ad hoc
+                                  via --btrix-args-json.
   --btrix-args-json TEXT          JSON formatted string of additional args to
                                   pass to browsertrix-crawler,
                                   https://github.com/webrecorder/browsertrix-
                                   crawler#crawling-configuration-options
   -h, --help                      Show this message and exit.
+
 ```
     
 ## Browsertrix Crawl Configuration

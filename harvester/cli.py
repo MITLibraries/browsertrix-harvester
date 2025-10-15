@@ -215,10 +215,10 @@ def generate_metadata_records(
 )
 @click.option(
     "--num-workers",
-    default=2,
     required=False,
     type=int,
-    help="Number of parallel thread workers for crawler. [Default 2]",
+    help="Number of parallel thread workers for crawler. Crawler defaults to 1 if not "
+    "set here, in the configuration YAML, or ad hoc via --btrix-args-json.",
 )
 @click.option(
     "--btrix-args-json",
