@@ -25,7 +25,7 @@ class Crawler:
         config_yaml_filepath: str,
         sitemap_from_date: str | None = None,
         sitemap_to_date: str | None = None,
-        num_workers: int = 4,
+        num_workers: int | None = None,
         btrix_args_json: str | None = None,
         urls_file: str | None = None,
     ) -> None:

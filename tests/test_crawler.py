@@ -90,8 +90,6 @@ def test_crawler_build_command(create_mocked_crawler):
         crawler.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH,
         "--logging",
         "stats",
-        "--workers",
-        str(crawler.num_workers),
     }
 
     # assert without sitemap_from_date
