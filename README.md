@@ -202,3 +202,14 @@ it's likely that:
 2. the container does not have AWS credentials to work with
 
 The Pipfile command `harvester-dockerized` mounts your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.
+
+## Related Assets
+This is a repository that provides the Browsertrix Harvester. The following application infrastructure repositories are related to this repository:
+
+[TIMDEX Infrastructure](https://github.com/MITLibraries/mitlib-tf-workloads-timdex-infrastructure)
+[ECR](https://github.com/MITLibraries/mitlib-tf-workloads-ecr)
+
+## Maintainers
+* Owner: See [CODEOWNERS](./.github/CODEOWNERS)
+* Team: See [CODEOWNERS](./.github/CODEOWNERS)
+* Last Maintenance: 2025-10
