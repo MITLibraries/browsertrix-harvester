@@ -1,6 +1,22 @@
 # Crawl Data Parsing
 
-As mentioned in the [project README](../README.md), one thing that sets this application apart from just a web crawl is the parsing of metadata records that represent the websites crawled.  This is the work of the `harvester.parse.CrawlMetadataParser` class.
+What sets this application apart from just a web crawl is it provides the option to create structured metadata records from the crawl. This is the work of the `harvester.parse.CrawlMetadataParser` class. 
+
+This is invoked by including the flag `--metadata-output-file` when performing a `harvest` command.  The file extension -- `jsonl`, `.tsv`, or `.csv` -- dictates the output file type.  
+
+Metadata is extracted in the following way:
+1. The crawl is performed, and a WACZ file is saved inside the container
+2. Data from multiple parts of the crawl is extracted and combined into a single dataframe
+3. HTML content for each website is parsed from the WARC files, accessed through the WACZ file
+4. Additional metadata is extracted from that HTML content
+5. The original dataframe of websites is extended with this additional metadata generated from the HTML 
+6. Lastly, this is written locally, or to S3, as a JSONLines, XML, TSV, or CSV file
+
+An example record from a JSONLines output file looks like this:
+
+```jsonl
+{"url": "https://www-test.libraries.mit.edu/borrow/", "cdx_warc_filename": "rec-110ed00ee03c-homepage-20251020180949760-0.warc.gz", "cdx_title": "Borrow & request | MIT Libraries", "cdx_offset": "2482", "cdx_length": "17796", "og_title": "Borrow & request | MIT Libraries", "og_type": "website", "og_image": "https://www-test.libraries.mit.edu/app/themes/mitlib-parent/images/mit-libraries-logo-black-yellow-1200-1200.png", "og_url": "https://www-test.libraries.mit.edu/borrow/", "og_image_type": "image/png", "og_image_width": "1200", "og_image_height": "1200", "og_image_alt": "MIT Libraries logo", "og_description": "On this page: Visit us Borrow & request MIT Materials Borrow & request materials from other libraries Get materials for course reserves Return physical materials On campus Other shipping options Policies Loan periods Recalls Renewals allowed Fines Visit us in person See hours and locations. Visitors may access open library locations during MIT’s public entrance hours. Borrow & request MIT materials Your MIT ID is your library card; either physical or Mobile ID are acceptable. MIT faculty, students, staff, and retirees* automatically receive borrowing privileges. See special user types for information about borrowing privileges for other groups. *Retirees may need to verify eligibility with the […]", "fulltext": null, "fulltext_keywords": "Web of Science,Borrow,Search,request,Borrow Direct,Materials,Borrow Direct Request,Account Search Account,Hours,reserves Borrow Direct,Interlibrary Borrowing,Research,Research support,Borrowing,Collections,reserves,faculty,Search Account Contact,Account,locations"}
+```
 
 ## What crawled sites are included as metadata records?
 
