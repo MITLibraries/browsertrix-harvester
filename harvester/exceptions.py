@@ -17,3 +17,7 @@ class ConfigYamlError(Exception):
 
 class ContextManagerRequiredError(Exception):
     pass
+
+
+class NoValidSeedsError(Exception):
+    pass

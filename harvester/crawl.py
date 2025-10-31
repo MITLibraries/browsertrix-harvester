@@ -8,7 +8,11 @@ import subprocess
 
 import smart_open  # type: ignore[import]
 
-from harvester.exceptions import ConfigYamlError, WaczFileDoesNotExist
+from harvester.exceptions import (
+    ConfigYamlError,
+    NoValidSeedsError,
+    WaczFileDoesNotExist,
+)
 from harvester.utils import require_container
 
 logger = logging.getLogger(__name__)
@@ -101,11 +105,21 @@ class Crawler:
                     if '"context":"crawlStatus"' in line:
                         self._log_crawl_count_status(line)
 
-                    # identify fatal logs and raise Runtime exception
+                    # identify fatal logs and handle appropriately
                     if '"logLevel":"fatal"' in line:
-                        raise RuntimeError(
-                            f"Fatal log message detected from crawler, exiting: {line}"
-                        )
+                        try:
+                            log_data = json.loads(line)
+                            if "No valid seeds specified" in log_data.get("message", ""):
+                                raise NoValidSeedsError(log_data.get("message", line))
+
+                            raise RuntimeError(
+                                "Fatal log message detected from crawler, exiting: "
+                                f"{log_data.get('message', line)}"
+                            )
+                        except json.JSONDecodeError as e:
+                            raise RuntimeError(
+                                f"Could not parse fatal log message: {line}"
+                            ) from e
 
         if process.stderr:  # pragma: no cover
             for line in process.stderr:

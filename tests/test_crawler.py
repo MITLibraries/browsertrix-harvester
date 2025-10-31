@@ -11,6 +11,7 @@ import pytest
 from harvester.crawl import Crawler
 from harvester.exceptions import (
     ConfigYamlError,
+    NoValidSeedsError,
     RequiresContainerContextError,
     WaczFileDoesNotExist,
 )
@@ -184,6 +185,27 @@ def test_crawl_fatal_log_raises_runtime_error(create_mocked_crawler):
     mock_process.wait.return_value = 0
 
     with pytest.raises(RuntimeError, match="Fatal log message detected"), patch(
+        "subprocess.Popen", return_value=mock_process
+    ):
+        crawler.crawl()
+
+
+@pytest.mark.usefixtures("_mock_inside_container")
+def test_crawl_no_valid_seeds_raises_exception(create_mocked_crawler):
+    crawler = create_mocked_crawler()
+    stdouts = [
+        (
+            '{"logLevel":"fatal","message":"No valid seeds specified, '
+            'aborting crawl. Quitting","context":"general","details":{}}'
+        )
+    ]
+    mock_process = MagicMock()
+    mock_process.__enter__.return_value = mock_process
+    mock_process.__exit__.return_value = None
+    mock_process.stdout = iter(stdouts)
+    mock_process.stderr = iter([])
+    mock_process.wait.return_value = 0
+    with pytest.raises(NoValidSeedsError), patch(
         "subprocess.Popen", return_value=mock_process
     ):
         crawler.crawl()
