@@ -8,6 +8,7 @@ import pytest
 import smart_open
 
 from harvester.cli import main
+from harvester.exceptions import NoValidSeedsError
 
 
 def test_cli_no_command_options(caplog, runner):
@@ -292,3 +293,27 @@ def test_cli_harvest_with_sitemap_urls_output_file(caplog, runner):
         )
 
         assert mock_write_urls.call_count == 2
+
+
+def test_cli_harvest_handles_no_valid_seeds(caplog, runner):
+    with patch(
+        "harvester.crawl.Crawler.crawl",
+        side_effect=NoValidSeedsError(
+            "No valid seeds specified, aborting crawl. Quitting"
+        ),
+    ):
+        result = runner.invoke(
+            main,
+            [
+                "--verbose",
+                "harvest",
+                "--crawl-name",
+                "homepage",
+                "--config-yaml-file",
+                "tests/fixtures/lib-website-homepage.yaml",
+                "--wacz-output-file",
+                "/tmp/homepage.wacz",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "No valid seeds specified, aborting crawl" in caplog.text

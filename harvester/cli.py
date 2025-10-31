@@ -6,12 +6,14 @@ import logging
 import os
 from datetime import UTC, datetime, timedelta
 from time import perf_counter
+from typing import Any
 
 import click
 import smart_open  # type: ignore[import]
 
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
+from harvester.exceptions import NoValidSeedsError
 from harvester.metadata import CrawlMetadataParser
 from harvester.sitemaps import SitemapsParser
 from harvester.utils import require_container
@@ -231,7 +233,7 @@ def generate_metadata_records(
 )
 @click.pass_context
 def harvest(
-    ctx: click.Context,
+    _ctx: click.Context,
     crawl_name: str,
     config_yaml_file: str,
     sitemaps: tuple[str, ...],
@@ -286,7 +288,11 @@ def harvest(
         btrix_args_json=btrix_args_json,
         urls_file=urls_file,
     )
-    crawler.crawl()
+    try:
+        crawler.crawl()
+    except NoValidSeedsError as e:
+        logger.info(e)
+        return
     logger.info("Crawl complete, WACZ archive located at: %s", crawler.wacz_filepath)
 
     # upload WACZ if output file destination provided
@@ -325,6 +331,10 @@ def harvest(
             ) as urls_out:
                 urls_out.write(urls_in.read())
 
+
+@main.result_callback()
+@click.pass_context
+def command_exit(ctx: click.Context, *_args: Any, **_kwargs: Any) -> None:  # noqa: ANN401
     logger.info(
         "Total elapsed: %s",
         str(
