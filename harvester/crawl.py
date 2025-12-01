@@ -33,6 +33,18 @@ class Crawler:
         btrix_args_json: str | None = None,
         urls_file: str | None = None,
     ) -> None:
+        """Instantiate a Crawler instance.
+
+        Args:
+            crawl_name: Name of crawl
+            config_yaml_filepath: Path of YAML inside browsertrix Docker container
+            sitemap_from_date: Date to limit URLs from sitemaps defined in YAML
+            sitemap_to_date: Date to limit URLs from sitemaps defined in YAML
+            num_workers: Number of workers browsertrix should use
+            btrix_args_json: JSON string that is converted into browsertrix CLI args
+            urls_file: Text file with explicit URLs to crawl
+                - this extends the crawl scope as defined by YAML, not replace it
+        """
         self.crawl_name = crawl_name
         self.config_yaml_filepath = config_yaml_filepath
         self.sitemap_from_date = sitemap_from_date

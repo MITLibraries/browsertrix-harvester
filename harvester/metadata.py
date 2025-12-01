@@ -78,10 +78,13 @@ class CrawlMetadataParser:
         metadata extracted from the HTML content itself.
 
         Args:
-            include_fulltext: #TODO: complete
-            extract_fulltext_keywords: #TODO: complete
-            urls_file: #TODO: complete
-            previous_sitemap_urls_file: #TODO: complete
+            include_fulltext: Boolean to include fulltext as extracted by browsertrix
+            extract_fulltext_keywords: Extracts keywords using YAKE keyword extractor
+                - NOTE: Planning to deprecate this feature, do not use.
+            urls_file: Text file with URLs found in this crawl
+                - used for generating action="delete" records
+            previous_sitemap_urls_file: Text file with URLs found in last crawl
+                - used for generating action="delete" records
         """
         logger.info("Generating metadata records from crawl")
 
