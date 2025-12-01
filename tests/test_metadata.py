@@ -6,8 +6,9 @@ from unittest.mock import mock_open, patch
 
 import pandas as pd
 import pytest
+from bs4 import BeautifulSoup
 
-from harvester.metadata import CrawlMetadataRecords, smart_open
+from harvester.metadata import CrawlMetadataParser, CrawlMetadataRecords, smart_open
 
 
 def test_metadata_parser_wacz_filepath(mocked_parser):
@@ -82,6 +83,8 @@ def test_metadata_parser_extract_metadata_from_html_tags(mocked_parser):
         <head>
             <meta property="og:title" content="Test Title"/>
             <meta property="og:description" content="Test Description" />
+            <meta name="DC.Title" content="DC Test Title"/>
+            <meta name="DC.Creator" content="Test Creator" />
         </head>
     </html>
     """
@@ -89,7 +92,23 @@ def test_metadata_parser_extract_metadata_from_html_tags(mocked_parser):
     assert html_metadata == {
         "og_title": "Test Title",
         "og_description": "Test Description",
+        "DC.Title": "DC Test Title",
+        "DC.Creator": "Test Creator",
     }
+
+
+def test_parse_open_graph_meta_elements():
+    html = '<meta property="og:title" content="OG Title"/>'
+    soup = BeautifulSoup(html, "html.parser")
+    fields = CrawlMetadataParser._parse_open_graph_meta_elements(soup)
+    assert fields == {"og_title": "OG Title"}
+
+
+def test_parse_dublin_core_meta_elements():
+    html = '<meta name="DC.Title" content="DC Title"/>'
+    soup = BeautifulSoup(html, "html.parser")
+    fields = CrawlMetadataParser._parse_dublin_core_meta_elements(soup)
+    assert fields == {"DC.Title": "DC Title"}
 
 
 def test_metadata_parser_remove_whitespace_fulltext(mocked_parser):
