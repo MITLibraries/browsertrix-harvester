@@ -162,7 +162,7 @@ class CrawlMetadataParser:
         websites_metadata_df = pd.DataFrame(all_metadata)
 
         # replace NaN with python None
-        websites_metadata_df = websites_metadata_df.where(
+        websites_metadata_df = websites_metadata_df.where(  # type: ignore[call-overload]
             pd.notna(websites_metadata_df), None
         )
 

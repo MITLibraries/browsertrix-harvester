@@ -51,7 +51,7 @@ ruff: # Run 'ruff' linter and print a preview of errors
 	pipenv run ruff check .
 
 safety: # Check for security vulnerabilities and verify Pipfile.lock is up-to-date
-	pipenv run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
+	pipenv run pip-audit
 	pipenv verify
 
 lint-apply: black-apply ruff-apply # Apply changes with 'black' and resolve 'fixable errors' with 'ruff'
