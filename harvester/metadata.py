@@ -23,23 +23,6 @@ class CrawlMetadataParser:
     generate metadata records for each website crawled.
     """
 
-    # list of metadata tags that are extracted from HTML
-    HTML_CONTENT_METADATA_TAGS = (
-        "og:site_name",
-        "og:title",
-        "og:locale",
-        "og:type",
-        "og:image",
-        "og:url",
-        "og:image:url",
-        "og:image:secure_url",
-        "og:image:type",
-        "og:image:width",
-        "og:image:height",
-        "og:image:alt",
-        "og:description",
-    )
-
     # list of stopwords to ignore when generating keywords from fulltext
     FULLTEXT_KEYWORD_STOPWORDS = (
         "Skip to Main",
@@ -95,10 +78,13 @@ class CrawlMetadataParser:
         metadata extracted from the HTML content itself.
 
         Args:
-            include_fulltext: #TODO: complete
-            extract_fulltext_keywords: #TODO: complete
-            urls_file: #TODO: complete
-            previous_sitemap_urls_file: #TODO: complete
+            include_fulltext: Boolean to include fulltext as extracted by browsertrix
+            extract_fulltext_keywords: Extracts keywords using YAKE keyword extractor
+                - NOTE: Planning to deprecate this feature, do not use.
+            urls_file: Text file with URLs found in this crawl
+                - used for generating action="delete" records
+            previous_sitemap_urls_file: Text file with URLs found in last crawl
+                - used for generating action="delete" records
         """
         logger.info("Generating metadata records from crawl")
 
@@ -162,7 +148,7 @@ class CrawlMetadataParser:
         websites_metadata_df = pd.DataFrame(all_metadata)
 
         # replace NaN with python None
-        websites_metadata_df = websites_metadata_df.where(
+        websites_metadata_df = websites_metadata_df.where(  # type: ignore[call-overload]
             pd.notna(websites_metadata_df), None
         )
 
@@ -222,18 +208,83 @@ class CrawlMetadataParser:
         This method extracts values for HTML tags defined in HTML_CONTENT_METADATA_TAGS,
         which are mostly aligned with expected Open Graph Protocol (OGP) HTML elements.
         """
-        soup = BeautifulSoup(html_content, "html.parser")
+        html_soup = BeautifulSoup(html_content, "html.parser")
+
         tags = {}
-        for og_tag_name in cls.HTML_CONTENT_METADATA_TAGS:
-            og_tag = soup.find("meta", property=og_tag_name)
+        tags.update(cls._parse_open_graph_meta_elements(html_soup))
+        tags.update(cls._parse_dublin_core_meta_elements(html_soup))
+
+        return tags
+
+    @classmethod
+    def _parse_open_graph_meta_elements(cls, html_soup: BeautifulSoup) -> dict:
+        """Parse OpenGraph <meta> tag values.
+
+        https://ogp.me/
+
+        Example:
+            <meta property="og:title" content="MIT Libraries"/>
+            <meta property="og:description" content="Library home page." />
+        """
+        og_tag_properties = (
+            "og:site_name",
+            "og:title",
+            "og:locale",
+            "og:type",
+            "og:image",
+            "og:url",
+            "og:image:url",
+            "og:image:secure_url",
+            "og:image:type",
+            "og:image:width",
+            "og:image:height",
+            "og:image:alt",
+            "og:description",
+        )
+
+        fields = {}
+        for og_tag_property in og_tag_properties:
+            og_tag = html_soup.find("meta", attrs={"property": og_tag_property})
             if og_tag is None:
                 continue
             if content := og_tag.get("content"):  # type: ignore[union-attr]
                 content_stripped = content.strip()  # type: ignore[union-attr]
                 if content_stripped != "":
-                    og_tag_name_friendly = og_tag_name.replace(":", "_")
-                    tags[og_tag_name_friendly] = content_stripped
-        return tags
+                    og_tag_name_friendly = og_tag_property.replace(":", "_")
+                    fields[og_tag_name_friendly] = content_stripped
+        return fields
+
+    @classmethod
+    def _parse_dublin_core_meta_elements(cls, html_soup: BeautifulSoup) -> dict:
+        """Parse Dublin Core <meta> tag values.
+
+        Example:
+            <meta name="DC.Title" content="LibGuides: Biology: Home"/>
+            <meta name="DC.Description" content="A guide about biology."/>
+        """
+        dc_tag_names = (
+            "DC.Title",
+            "DC.Creator",
+            "DC.Subject",
+            "DC.Description",
+            "DC.Publishers",
+            "DC.Rights",
+            "DC.Language",
+            "DC.Identifier",
+            "DC.Date.Created",
+            "DC.Date.Modified",
+        )
+        fields = {}
+        for dc_tag_name in dc_tag_names:
+            dc_tag = html_soup.find("meta", attrs={"name": dc_tag_name})
+            if dc_tag is None:
+                continue
+            if content := dc_tag.get("content"):  # type: ignore[union-attr]
+                content_stripped = content.strip()  # type: ignore[union-attr]
+                if content_stripped != "":
+                    dc_tag_name_friendly = dc_tag_name.replace(":", "_")
+                    fields[dc_tag_name_friendly] = content_stripped
+        return fields
 
     def _remove_fulltext_whitespace(self, fulltext: str) -> str:
         """Remove whitespace from provided fulltext."""

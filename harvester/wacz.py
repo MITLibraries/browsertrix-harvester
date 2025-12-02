@@ -235,7 +235,7 @@ class WACZClient:
             merged_df = merged_df.reset_index()
 
             # replace NaN values with None
-            merged_df = merged_df.where(pd.notna(merged_df), None)
+            merged_df = merged_df.where(pd.notna(merged_df), None)  # type: ignore[call-overload]
 
             # cache result
             self._html_websites_df = merged_df
