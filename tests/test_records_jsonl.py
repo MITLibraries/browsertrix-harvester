@@ -1,4 +1,4 @@
-"""tests.test_metadata_jsonl"""
+"""tests.test_records_jsonl"""
 
 # ruff: noqa: PERF401
 
@@ -7,17 +7,17 @@ from unittest.mock import mock_open, patch
 import jsonlines
 import pandas as pd
 
-from harvester.metadata import CrawlMetadataRecords, smart_open
+from harvester.records import CrawlRecords, smart_open
 
 
-def test_metadata_records_to_jsonl_bytes():
+def test_records_to_jsonl_bytes():
     df = pd.DataFrame(
         [
             {"a": 1, "b": None},
             {"a": 2, "b": "x"},
         ]
     )
-    records = CrawlMetadataRecords(df)
+    records = CrawlRecords(df)
     data = records.to_jsonl()
     assert isinstance(data, (bytes, bytearray))
     text = data.decode("utf-8")
@@ -30,9 +30,9 @@ def test_metadata_records_to_jsonl_bytes():
     assert parsed == [{"a": 1, "b": None}, {"a": 2, "b": "x"}]
 
 
-def test_metadata_write_jsonl_calls_open(tmp_path):
+def test_records_write_jsonl_calls_open(tmp_path):
     df = pd.DataFrame([{"a": 1}])
-    records = CrawlMetadataRecords(df)
+    records = CrawlRecords(df)
     with patch.object(smart_open, "open", mock_open()) as m:
         records.write("out.jsonl")
         m.assert_called_with("out.jsonl", "wb")

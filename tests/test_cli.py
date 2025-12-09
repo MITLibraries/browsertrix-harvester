@@ -36,7 +36,7 @@ def test_cli_harvest_missing_options_raises_error(caplog, runner):
             "harvest",
             "--crawl-name",
             "homepage",
-            "--metadata-output-file",
+            "--records-output-file",
             "/tmp/test.xml",
         ],
     )
@@ -52,7 +52,7 @@ def test_cli_harvest_missing_options_raises_error(caplog, runner):
         ],
     )
     assert (
-        "One or both of arguments --wacz-output-file and --metadata-output-file"
+        "One or both of arguments --wacz-output-file and --records-output-file"
         in caplog.text
     )
 
@@ -68,7 +68,7 @@ def test_cli_harvest_required_options_bad_yaml_raises_error(caplog, runner):
             "homepage",
             "--config-yaml-file",
             "/files/does/not/exist.yaml",
-            "--metadata-output-file",
+            "--records-output-file",
             "/tmp/test.xml",
         ],
     )
@@ -128,12 +128,12 @@ def test_cli_harvest_write_wacz(caplog, runner):
 
 
 @pytest.mark.usefixtures("_mock_inside_container")
-def test_cli_harvest_write_metadata(caplog, runner):
+def test_cli_harvest_write_records(caplog, runner):
     with patch(
         "harvester.crawl.Crawler.crawl",
     ), patch(
-        "harvester.metadata.CrawlMetadataParser.generate_metadata",
-    ) as mock_generate_metadata:
+        "harvester.records.CrawlRecordsParser.generate_records",
+    ) as mock_generate_records:
         runner.invoke(
             main,
             [
@@ -143,13 +143,13 @@ def test_cli_harvest_write_metadata(caplog, runner):
                 "homepage",
                 "--config-yaml-file",
                 "tests/fixtures/lib-website-homepage.yaml",
-                "--metadata-output-file",
-                "/tmp/homepage-metadata.xml",
+                "--records-output-file",
+                "/tmp/homepage-records.xml",
             ],
         )
         assert "Parsing WACZ archive file" in caplog.text
-        assert mock_generate_metadata.called
-        assert "Metadata records successfully written" in caplog.text
+        assert mock_generate_records.called
+        assert "Records successfully written" in caplog.text
 
 
 def test_cli_parse_url_content_prints_html_to_stdout(caplog, runner):
@@ -171,65 +171,44 @@ def test_cli_parse_url_content_prints_html_to_stdout(caplog, runner):
         assert "<!DOCTYPE html>" in result.stdout
 
 
-def test_cli_generate_metadata_records(caplog, runner):
+def test_cli_generate_records_records(caplog, runner):
     with patch(
-        "harvester.metadata.CrawlMetadataParser.generate_metadata",
-    ) as mock_generate_metadata:
+        "harvester.records.CrawlRecordsParser.generate_records",
+    ) as mock_generate_records:
         _result = runner.invoke(
             main,
             [
                 "--verbose",
-                "generate-metadata-records",
+                "generate-records",
                 "--wacz-input-file",
                 "tests/fixtures/homepage.wacz",
-                "--metadata-output-file",
+                "--records-output-file",
                 "/tmp/records.xml",
             ],
         )
     assert "Parsing WACZ archive file" in caplog.text
-    assert mock_generate_metadata.called
-    assert "Metadata records successfully written" in caplog.text
+    assert mock_generate_records.called
+    assert "Records successfully written" in caplog.text
 
 
-def test_cli_generate_metadata_records_jsonlines(caplog, runner):
+def test_cli_generate_records_records_jsonlines(caplog, runner):
     with patch(
-        "harvester.metadata.CrawlMetadataParser.generate_metadata",
-    ) as mock_generate_metadata:
+        "harvester.records.CrawlRecordsParser.generate_records",
+    ) as mock_generate_records:
         _result = runner.invoke(
             main,
             [
                 "--verbose",
-                "generate-metadata-records",
+                "generate-records",
                 "--wacz-input-file",
                 "tests/fixtures/homepage.wacz",
-                "--metadata-output-file",
+                "--records-output-file",
                 "/tmp/records.jsonl",
             ],
         )
     assert "Parsing WACZ archive file" in caplog.text
-    assert mock_generate_metadata.called
-    assert "Metadata records successfully written" in caplog.text
-
-
-def test_cli_generate_metadata_records_with_fulltext_flags(runner):
-    with patch(
-        "harvester.metadata.CrawlMetadataParser.generate_metadata",
-    ) as mock_generate_metadata:
-        runner.invoke(
-            main,
-            [
-                "generate-metadata-records",
-                "--wacz-input-file",
-                "tests/fixtures/homepage.wacz",
-                "--metadata-output-file",
-                "/tmp/records.xml",
-                "--include-fulltext",
-                "--extract-fulltext-keywords",
-            ],
-        )
-        mock_generate_metadata.assert_called_once_with(
-            include_fulltext=True, extract_fulltext_keywords=True
-        )
+    assert mock_generate_records.called
+    assert "Records successfully written" in caplog.text
 
 
 @pytest.mark.usefixtures("_mock_inside_container")

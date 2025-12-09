@@ -267,7 +267,7 @@ class WACZClient:
         warc_filename: str,
         offset: str | int,
         decode: bool = True,
-    ) -> str:
+    ) -> str | bytes:
         """Extract HTML content from a WARC record given WARC filename and offset.
 
         Given a WARC file and an offset, retrieve the WARC record as a readable object,
@@ -285,7 +285,7 @@ class WACZClient:
         self,
         url: str,
         decode: bool = True,
-    ) -> str:
+    ) -> str | bytes:
         """Extract HTML content from a WARC record given a URL only.
 
         NOTE: this is slower than using self.get_website_content() if the warc filename
