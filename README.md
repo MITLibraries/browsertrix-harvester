@@ -1,8 +1,6 @@
 # browsertrix-harvester
 
-CLI app for performing a web crawl via [Browsertrix-Crawler](https://github.com/webrecorder/browsertrix-crawler) and optionally parsing structured metadata records from the crawl output [WACZ](https://replayweb.page/docs/wacz-format) file.
-
-One of the primary value adds of this application, as opposed to just running the browsertrix-crawler, is the ability to extract structured metadata records for websites crawled. For more information, see [Crawl Data Parsing](docs/crawl_data_parsing.md).
+CLI app for performing a web crawl via [Browsertrix-Crawler](https://github.com/webrecorder/browsertrix-crawler) and generating records for each website from the crawl output [WACZ](https://replayweb.page/docs/wacz-format) file (see [Crawl Data Parsing](docs/crawl_data_parsing.md) for more information).
 
 
 ## Architecture
@@ -29,9 +27,9 @@ When performing web crawls, this application invokes browsertrix-crawler.  While
 make run-harvest-local
 ```
 
-This Make command kicks off a harvest via a local Docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output metadata file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
+This Make command kicks off a harvest via a local Docker container.  The Make command reflects some ways in which a harvest can be configured, including local or S3 filepath to a configuration YAML, setting an output records file, and even passing in miscellaneous browsertrix arguments to the crawler not explicitly defined as CLI parameters in this app.
 
-The argument `--metadata-output-file="/crawls/collections/homepage/homepagejsonl"` instructs the harvest to parse metadata records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepagejsonl`.
+The argument `--records-output-file="/crawls/collections/homepage/homepage.jsonl"` instructs the harvest to parse records from the crawl, which are written to the container, and should then be available on the _host_ machine at: `output/crawls/collections/homepage/homepage.jsonl`.
 
 ### Remote Test Crawl
 
@@ -40,7 +38,7 @@ make run-harvest-dev
 ```
   * Set AWS credentials are required in calling context
   * Kicks off an ECS Fargate task in Dev1
-  * WACZ file and metadata file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|jsonl|wacz`
+  * WACZ file and records file are written to S3 at `timdex-extract-dev-222053980223/librarywebsite/test-harvest-ecs-<TIMESTAMP>.xml|jsonl|wacz`
 
 ## CLI commands
 
@@ -54,10 +52,10 @@ Options:
   -h, --help     Show this message and exit.
 
 Commands:
-  docker-shell               Run a bash shell inside the docker container.
-  generate-metadata-records  Generate metadata records from a WACZ file.
-  harvest                    Perform crawl and generate metadata records.
-  parse-url-content          Get HTML for a single URL.
+  docker-shell       Run a bash shell inside the docker container.
+  generate-records   Generate records from a WACZ file.
+  harvest            Perform crawl and generate records.
+  parse-url-content  Get HTML for a single URL.
 ```
 
 ### `harvester docker-shell`
@@ -89,28 +87,32 @@ Options:
   -h, --help              Show this message and exit.
 ```
 
-### `harvester generate-metadata-records`
+### `harvester generate-records`
 
 ```text
-Usage: -c generate-metadata-records [OPTIONS]
+Usage: -c generate-records [OPTIONS]
 
-  Generate metadata records from a WACZ file.
+  Generate records from a WACZ file.
 
   This is a convenience CLI command.  Most commonly, the command 'harvest'
-  will be used that performs a web crawl and generates metadata records from
+  will be used that performs a web crawl and generates records from
   that crawl as under the umbrella of a single command.  This CLI command
   would be useful if a crawl is already completed (a WACZ file exists) and
-  only the generation of metadata records is needed.
+  only the generation of records is needed.
 
 Options:
-  --wacz-input-file TEXT       Filepath to WACZ archive from crawl  [required]
-  --metadata-output-file TEXT  Filepath to write metadata records to. Can be a
-                               local filepath or an S3 URI, e.g.
-                               s3://bucketname/filename.jsonl.  Supported file
-                               type extensions: [jsonl, xml,tsv,csv].
-  --include-fulltext           Set to include parsed fulltext from website in
-                               generated structured metadata.
-  -h, --help                   Show this message and exit.
+  --wacz-input-file TEXT          Filepath to WACZ archive from crawl
+                                  [required]
+  --records-output-file TEXT      Filepath to write records to. Can be a local
+                                  filepath or an S3 URI, e.g.
+                                  s3://bucketname/filename.jsonl.  Supported
+                                  file type extensions: [jsonl, xml,tsv,csv].
+                                  [required]
+  --sitemap-urls-file TEXT        Filepath of URLs discovered from this crawl.
+  --previous-sitemap-urls-file TEXT
+                                  Filepath of URLs discovered from previous
+                                  crawl.
+  -h, --help                      Show this message and exit.
 ```
 
 ### `harvester harvest`
@@ -118,10 +120,9 @@ Options:
 ```text
 Usage: -c harvest [OPTIONS]
 
-  Perform crawl and generate metadata records.
+  Perform crawl and generate records.
 
-  Perform a web crawl and generate metadata records from the resulting WACZ
-  file.
+  Perform a web crawl and generate records from the resulting WACZ file.
 
 Options:
   --config-yaml-file TEXT         Filepath of browsertrix config YAML. Can be
@@ -142,24 +143,19 @@ Options:
   --wacz-output-file TEXT         Filepath to write WACZ archive file to. Can
                                   be a local filepath or an S3 URI, e.g.
                                   s3://bucketname/filename.jsonl.
-  --metadata-output-file TEXT     Filepath to write metadata records to. Can
-                                  be a local filepath or an S3 URI, e.g.
+  --records-output-file TEXT      Filepath to write records to. Can be a local
+                                  filepath or an S3 URI, e.g.
                                   s3://bucketname/filename.jsonl.  Supported
                                   file type extensions: [jsonl,xml,tsv,csv].
   --sitemap-urls-output-file TEXT
-                                  If --parse-sitemaps-pre-crawl is set,
-                                  optionally write a text file of
-                                  discoveredURLs parsed from sitemap(s).
+                                  Optionally write a text file of discovered
+                                  URLs parsed from sitemap(s).
   --previous-sitemap-urls-file TEXT
                                   If passed, a previous file with all URLs
                                   from sitemap parsing will be read and used
                                   to determine if URLs have since been removed
                                   and should be marked as 'deleted' as an
-                                  output metadata record.
-  --include-fulltext              Set to include parsed fulltext from website
-                                  in generated structured metadata.
-  --extract-fulltext-keywords     Set to use YAKE to extract keywords from
-                                  fulltext.
+                                  output record.
   --num-workers INTEGER           Number of parallel thread workers for
                                   crawler. Crawler defaults to 1 if not set
                                   here, in the configuration YAML, or ad hoc
@@ -169,14 +165,13 @@ Options:
                                   https://github.com/webrecorder/browsertrix-
                                   crawler#crawling-configuration-options
   -h, --help                      Show this message and exit.
-
 ```
 
 This is the primary command for this application.  This performs a web crawl, then optionally parses the results of that crawl into structured data and writes to a specific location.
 
 See section [Browsertrix Crawl Configuration](docs/crawl_configuration.md) for details about configuring the browsertrix crawl part of a harvest.
 
-**NOTE:** if _neither_ `--wacz-output-file` or `--metadata-output-file` is set, an error will be logged and the application will exit before a crawl is performed as there would be no output.
+**NOTE:** if _neither_ `--wacz-output-file` or `--records-output-file` is set, an error will be logged and the application will exit before a crawl is performed as there would be no output.
 
 ## Environment Variables
 

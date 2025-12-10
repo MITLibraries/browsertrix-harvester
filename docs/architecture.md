@@ -9,7 +9,7 @@ FROM webrecorder/browsertrix-crawler:latest
 # ...
 ```
 
-NOTE: this is different from other python CLI apps, which generally use `python:3.11-slim` as the base image.
+NOTE: this is different from other python CLI apps, which generally use `python:3.x-slim` as the base image.
 
 ## Web Crawls
 
@@ -38,9 +38,9 @@ classDiagram
         crawl_output_dir: str
         crawl() -> WACZ archive
     }
-    class CrawlMetadataParser{
+    class CrawlRecordsParser{
         wacz_filepath: str
-        generate_metadata() -> DataFrame        
+        generate_records() -> DataFrame        
     }
     class WACZClient{
         wacz_filepath: str
@@ -49,14 +49,14 @@ classDiagram
         get_website_content() -> bytes|str
         get_website_content_by_url() -> bytes|str
     }
-    class CrawlMetadataRecords{
+    class CrawlRecords{
         df: DataFrame
         write() -> File
     }
     Crawler <|-- Cli
-    CrawlMetadataParser <|-- Cli
-    WACZClient <|-- CrawlMetadataParser
-    CrawlMetadataRecords <|-- CrawlMetadataParser
+    CrawlRecordsParser <|-- Cli
+    WACZClient <|-- CrawlRecordsParser
+    CrawlRecords <|-- CrawlRecordsParser
     
 ```
 
@@ -77,14 +77,14 @@ flowchart LR
     pipenv_cmd_container("Pipenv Cmd")
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlMetadataParser")
-    metadata("class CrawlMetadataRecords")
+    parser("class CrawlRecordsParser")
+    records("class CrawlRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
     
     %% anywhere
     output_wacz("WACZ archive file")
-    output_metadata("Metadata Records XML")
+    output_records("Records XML")
     
     pipenv_cmd --> pipenv_cmd_container
     output_folder -. mount .- crawls_folder
@@ -93,10 +93,10 @@ flowchart LR
         pipenv_cmd
         output_folder
         output_wacz
-        output_metadata
-        
+        output_records
+
         output_wacz -. inside .- output_folder
-        output_metadata -. inside .- output_folder
+        output_records -. inside .- output_folder
     end
     
     subgraph Docker Container 
@@ -108,11 +108,11 @@ flowchart LR
         btrix -->|writes to| crawls_folder
         cli_harvest -->|Step 4: call| parser
         parser -->|reads from| crawls_folder
-        parser --> metadata
+        parser --> records
     end
     
     cli_harvest -->|"Step 3: write (optional)"| output_wacz
-    metadata -->|Step 5: write| output_metadata    
+    records -->|Step 5: write| output_records    
 ```
 
 ### Deployed
@@ -130,14 +130,14 @@ flowchart LR
     %% docker container
     cli_harvest("CLI.harvest()")
     crawler("class Crawler")
-    parser("class CrawlMetadataParser")
-    metadata("class CrawlMetadataRecords")
+    parser("class CrawlRecordsParser")
+    records("class CrawlRecords")
     crawls_folder("/crawls")
     btrix("Browsertrix Node App")
     
     %% anywhere
     output_wacz("WACZ archive file")
-    output_metadata("Metadata Records XML")
+    output_records("Records XML")
     
     aws_event --> pipenv_cmd
     
@@ -148,15 +148,15 @@ flowchart LR
         btrix -->|writes to| crawls_folder
         cli_harvest -->|Step 4: call| parser
         parser -->|reads from| crawls_folder
-        parser --> metadata
+        parser --> records
     end
     
     cli_harvest -->|"Step 3: write (optional)"| output_wacz
-    metadata -->|Step 5: write| output_metadata
+    records -->|Step 5: write| output_records
     
     subgraph S3 bucket
         output_wacz
-        output_metadata
+        output_records
     end
     
 ```

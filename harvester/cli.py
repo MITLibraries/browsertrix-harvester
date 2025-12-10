@@ -14,7 +14,7 @@ import smart_open  # type: ignore[import]
 from harvester.config import configure_logger, configure_sentry
 from harvester.crawl import Crawler
 from harvester.exceptions import NoValidSeedsError
-from harvester.metadata import CrawlMetadataParser
+from harvester.records import CrawlRecordsParser
 from harvester.sitemaps import SitemapsParser
 from harvester.utils import require_container
 from harvester.wacz import WACZClient
@@ -94,45 +94,45 @@ def parse_url_content(wacz_input_file: str, url: str) -> None:
     help="Filepath to WACZ archive from crawl",
 )
 @click.option(
-    "--metadata-output-file",
+    "--records-output-file",
     required=True,
-    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    help="Filepath to write records to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
     "[jsonl, xml,tsv,csv].",
 )
 @click.option(
-    "--include-fulltext",
-    is_flag=True,
-    help="Set to include parsed fulltext from website in generated structured metadata.",
+    "--sitemap-urls-file",
+    required=False,
+    help="Filepath of URLs discovered from this crawl.",
 )
 @click.option(
-    "--extract-fulltext-keywords",
-    is_flag=True,
-    help="Set to use YAKE to extract keywords from fulltext.",
+    "--previous-sitemap-urls-file",
+    required=False,
+    help="Filepath of URLs discovered from previous crawl.",
 )
 @click.pass_context
-def generate_metadata_records(
+def generate_records(
     ctx: click.Context,
     wacz_input_file: str,
-    metadata_output_file: str,
-    include_fulltext: bool,
-    extract_fulltext_keywords: bool,
+    records_output_file: str,
+    sitemap_urls_file: str,
+    previous_sitemap_urls_file: str,
 ) -> None:
-    """Generate metadata records from a WACZ file.
+    """Generate records from a WACZ file.
 
     This is a convenience CLI command.  Most commonly, the command 'harvest' will be used
-    that performs a web crawl and generates metadata records from that crawl as under the
+    that performs a web crawl and generates records from that crawl as under the
     umbrella of a single command.  This CLI command would be useful if a crawl is already
-    completed (a WACZ file exists) and only the generation of metadata records is needed.
+    completed (a WACZ file exists) and only the generation of records is needed.
     """
     logger.info("Parsing WACZ archive file")
-    parser = CrawlMetadataParser(wacz_input_file)
-    crawl_metadata_records = parser.generate_metadata(
-        include_fulltext=include_fulltext,
-        extract_fulltext_keywords=extract_fulltext_keywords,
+    parser = CrawlRecordsParser(wacz_input_file)
+    crawl_records = parser.generate_records(
+        urls_file=sitemap_urls_file,
+        previous_sitemap_urls_file=previous_sitemap_urls_file,
     )
-    crawl_metadata_records.write(metadata_output_file)
-    logger.info("Metadata records successfully written")
+    crawl_records.write(records_output_file)
+    logger.info("Records successfully written")
     logger.info(
         "Total elapsed: %s",
         str(
@@ -186,34 +186,23 @@ def generate_metadata_records(
     "e.g. s3://bucketname/filename.jsonl.",
 )
 @click.option(
-    "--metadata-output-file",
+    "--records-output-file",
     required=False,
-    help="Filepath to write metadata records to. Can be a local filepath or an S3 URI, "
+    help="Filepath to write records to. Can be a local filepath or an S3 URI, "
     "e.g. s3://bucketname/filename.jsonl.  Supported file type extensions: "
     "[jsonl,xml,tsv,csv].",
 )
 @click.option(
     "--sitemap-urls-output-file",
     required=False,
-    help="If --parse-sitemaps-pre-crawl is set, optionally write a text file of "
-    "discoveredURLs parsed from sitemap(s).",
+    help="Optionally write a text file of discovered URLs parsed from sitemap(s).",
 )
 @click.option(
     "--previous-sitemap-urls-file",
     required=False,
     help="If passed, a previous file with all URLs from sitemap parsing will be read and "
     "used to determine if URLs have since been removed and should be marked as "
-    "'deleted' as an output metadata record.",
-)
-@click.option(
-    "--include-fulltext",
-    is_flag=True,
-    help="Set to include parsed fulltext from website in generated structured metadata.",
-)
-@click.option(
-    "--extract-fulltext-keywords",
-    is_flag=True,
-    help="Set to use YAKE to extract keywords from fulltext.",
+    "'deleted' as an output record.",
 )
 @click.option(
     "--num-workers",
@@ -240,21 +229,19 @@ def harvest(
     sitemap_from_date: str,
     sitemap_to_date: str,
     wacz_output_file: str,
-    metadata_output_file: str,
+    records_output_file: str,
     sitemap_urls_output_file: str,
     previous_sitemap_urls_file: str,
-    include_fulltext: bool,
-    extract_fulltext_keywords: bool,
     num_workers: int,
     btrix_args_json: str,
 ) -> None:
-    """Perform crawl and generate metadata records.
+    """Perform crawl and generate records.
 
-    Perform a web crawl and generate metadata records from the resulting WACZ file.
+    Perform a web crawl and generate records from the resulting WACZ file.
     """
-    if not wacz_output_file and not metadata_output_file:
+    if not wacz_output_file and not records_output_file:
         msg = (
-            "One or both of arguments --wacz-output-file and --metadata-output-file "
+            "One or both of arguments --wacz-output-file and --records-output-file "
             "must be set.  Exiting without performing a crawl."
         )
         logger.error(msg)
@@ -303,18 +290,16 @@ def harvest(
         ) as wacz_in:
             wacz_out.write(wacz_in.read())
 
-    # parse crawl and generate metadata records
-    if metadata_output_file:
+    # parse crawl and generate records
+    if records_output_file:
         logger.info("Parsing WACZ archive file")
-        parser = CrawlMetadataParser(crawler.wacz_filepath)
-        crawl_metadata_records = parser.generate_metadata(
-            include_fulltext=include_fulltext,
-            extract_fulltext_keywords=extract_fulltext_keywords,
+        parser = CrawlRecordsParser(crawler.wacz_filepath)
+        crawl_records = parser.generate_records(
             urls_file=ALL_SITEMAP_URLS_FILEPATH,
             previous_sitemap_urls_file=previous_sitemap_urls_file,
         )
-        crawl_metadata_records.write(metadata_output_file)
-        logger.info("Metadata records successfully written")
+        crawl_records.write(records_output_file)
+        logger.info("Records successfully written")
 
     # optionally, create a text file containing ALL URLs discovered
     # this supports future crawls analyzing this snapshot of sitemap URLs

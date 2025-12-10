@@ -8,7 +8,7 @@ from usp.objects.page import SitemapPage
 
 from harvester.crawl import Crawler
 from harvester.exceptions import WaczFileDoesNotExist
-from harvester.metadata import CrawlMetadataParser
+from harvester.records import CrawlRecordsParser
 from harvester.wacz import WACZClient
 
 
@@ -64,8 +64,8 @@ def _mock_inside_container():
 
 
 @pytest.fixture
-def mocked_parser() -> CrawlMetadataParser:
-    return CrawlMetadataParser("tests/fixtures/homepage.wacz")
+def mocked_parser() -> CrawlRecordsParser:
+    return CrawlRecordsParser("tests/fixtures/homepage.wacz")
 
 
 @pytest.fixture
