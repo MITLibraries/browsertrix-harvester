@@ -93,3 +93,12 @@ def test_wacz_client_get_content_by_url(mocked_wacz_client):
 
     with pytest.raises(FileNotFoundError):
         _ = mocked_wacz_client.get_website_content_by_url("http://not.present.in.crawl")
+
+
+def test_wacz_client_get_response_headers(mocked_wacz_client):
+    headers = mocked_wacz_client.get_response_headers(
+        "rec-20230925175225009669-4ae3daf80a34.warc.gz", 3485
+    )
+    assert isinstance(headers, dict)
+    assert "Content-Type" in headers
+    assert headers["Content-Type"] == ["text/html; charset=UTF-8"]
