@@ -82,6 +82,11 @@ class CrawlRecordsParser:
                 )
                 record["html_base64"] = base64.b64encode(html_content).decode()  # type: ignore[arg-type]
 
+                # add response headers
+                record["response_headers"] = wacz_client.get_response_headers(  # type: ignore[assignment]
+                    str(row.filename), str(row.offset)
+                )
+
                 all_records.append(record)
 
         # add status=deleted records if current and previous URL lists are passed

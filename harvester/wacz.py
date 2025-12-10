@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import zipfile
+from collections import defaultdict
 from collections.abc import Generator
 from contextlib import contextmanager
 from types import TracebackType
@@ -300,3 +301,16 @@ class WACZClient:
             message = f"Could not find url in CDX index: {url}"
             raise FileNotFoundError(message)
         return self.get_website_content(row.filename, row.offset, decode=decode)
+
+    def get_response_headers(
+        self,
+        warc_filename: str,
+        offset: str | int,
+    ) -> dict:
+        """Retrieve response headers for URL."""
+        warc_filepath = f"{self.WARC_DIR}/{warc_filename}"
+        with self._get_warc_record(warc_filepath, int(offset)) as record:
+            response_headers = defaultdict(list)
+            for header, value in record.http_headers.headers:
+                response_headers[header].append(value)
+            return response_headers
