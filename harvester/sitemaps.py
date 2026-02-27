@@ -70,9 +70,12 @@ class SitemapsParser:
 
         _pages = []
         for page in self._pages:
-            if from_date and page.last_modified < from_date:
+            last_modified = page.last_modified
+            if last_modified and last_modified.tzinfo is None:
+                last_modified = last_modified.replace(tzinfo=UTC)
+            if from_date and last_modified and last_modified < from_date:
                 continue
-            if to_date and page.last_modified >= to_date:
+            if to_date and last_modified and last_modified >= to_date:
                 continue
             _pages.append(page)
 
