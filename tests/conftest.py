@@ -1,3 +1,5 @@
+# ruff: noqa: DTZ001
+
 import os
 from datetime import UTC, datetime
 from unittest.mock import Mock, mock_open, patch
@@ -103,7 +105,7 @@ def _mock_missing_all_wacz_archive_files():
 
 @pytest.fixture
 def mock_sitemap_tree():
-    """Mock sitemap tree with sample pages"""
+    """Mock sitemap tree with sample pages using some intentionally naive datetimes."""
     mock_tree = Mock()
     pages = [
         SitemapPage(
@@ -112,11 +114,11 @@ def mock_sitemap_tree():
         ),
         SitemapPage(
             url="https://example.com/page2",
-            last_modified=datetime(2025, 2, 20, tzinfo=UTC),
+            last_modified=datetime(2025, 2, 20),
         ),
         SitemapPage(
             url="https://example.com/page3",
-            last_modified=datetime(2025, 3, 10, tzinfo=UTC),
+            last_modified=datetime(2025, 3, 10),
         ),
     ]
     mock_tree.all_pages.return_value = iter(pages)

@@ -99,8 +99,8 @@ class CrawlRecordsParser:
         websites_records_df = pd.DataFrame(all_records)
 
         # replace NaN with python None
-        websites_records_df = websites_records_df.where(  # type: ignore[call-overload]
-            pd.notna(websites_records_df), None
+        websites_records_df = websites_records_df.astype(object).mask(
+            websites_records_df.isna(), None
         )
 
         # remove duplicate URLs
@@ -199,7 +199,10 @@ class CrawlRecords:
         buffer = io.StringIO()
         with jsonlines.Writer(buffer) as writer:
             for _, row in self.records_df.iterrows():
-                writer.write(row.to_dict())
+                record = {
+                    k: (None if pd.isna(v) else v) for k, v in row.to_dict().items()
+                }
+                writer.write(record)
         return buffer.getvalue().encode("utf-8")
 
     def write(self, filepath: str) -> None:
