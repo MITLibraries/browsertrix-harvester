@@ -54,19 +54,25 @@ class SitemapsParser:
         sitemap_from_date = sitemap_from_date or self.sitemap_from_date
         sitemap_to_date = sitemap_to_date or self.sitemap_to_date
 
-        if sitemap_from_date:
-            sitemap_from_date = dateutil_parse(sitemap_from_date).replace(tzinfo=UTC)
-        if sitemap_to_date:
-            sitemap_to_date = dateutil_parse(sitemap_to_date).replace(tzinfo=UTC)
+        from_date = (
+            dateutil_parse(sitemap_from_date).replace(tzinfo=UTC)
+            if sitemap_from_date
+            else None
+        )
+        to_date = (
+            dateutil_parse(sitemap_to_date).replace(tzinfo=UTC)
+            if sitemap_to_date
+            else None
+        )
 
         if self._pages is None:
             return []
 
         _pages = []
         for page in self._pages:
-            if sitemap_from_date and page.last_modified < sitemap_from_date:
+            if from_date and page.last_modified < from_date:
                 continue
-            if sitemap_to_date and page.last_modified >= sitemap_to_date:
+            if to_date and page.last_modified >= to_date:
                 continue
             _pages.append(page)
 

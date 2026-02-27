@@ -9,7 +9,7 @@ from collections import defaultdict
 from collections.abc import Generator
 from contextlib import contextmanager
 from types import TracebackType
-from typing import IO
+from typing import IO, Self
 
 import pandas as pd
 import smart_open  # type: ignore[import]
@@ -51,7 +51,7 @@ class WACZClient:
         self._wacz_archive: zipfile.ZipFile | None = None
         self._html_websites_df: pd.DataFrame | None = None
 
-    def __enter__(self) -> "WACZClient":
+    def __enter__(self) -> Self:
         """Enter method for use when class instantiated via a context manager.
 
         This sets the private attribute self._via_context_manager to True, allowing any
@@ -236,7 +236,7 @@ class WACZClient:
             merged_df = merged_df.reset_index()
 
             # replace NaN values with None
-            merged_df = merged_df.where(pd.notna(merged_df), None)  # type: ignore[call-overload]
+            merged_df = merged_df.astype(object).mask(merged_df.isna(), None)
 
             # cache result
             self._html_websites_df = merged_df
