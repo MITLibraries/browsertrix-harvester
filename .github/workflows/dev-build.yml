@@ -1,10 +1,3 @@
-### This is the Terraform-generated dev-build.yml workflow for the         ###
-### browsertrix-harvester-dev app repository.                              ###
-### If this is a Lambda repo, uncomment the FUNCTION line at the end of    ###
-### the document. If the container requires any additional pre-build       ###
-### commands, uncomment and edit the PREBUILD line at the end of the       ###
-### document.                                                              ###
-
 name: Dev Container Build and Deploy
 on:
   workflow_dispatch:
@@ -49,12 +42,10 @@ jobs:
   deploy:
     needs: prep
     name: Dev Deploy
-    uses: mitlibraries/.github/.github/workflows/ecr-multi-arch-deploy-dev.yml@main
+    uses: mitlibraries/.github/.github/workflows/ecr-multi-arch-deploy-dev.yml@in-1732-update-deploy-workflows
     secrets: inherit
     with:
       AWS_REGION: "us-east-1"
       GHA_ROLE: "browsertrix-harvester-gha-dev"
       ECR: "browsertrix-harvester-dev"
       CPU_ARCH: ${{ needs.prep.outputs.cpuarch }}
-      # FUNCTION: ""
-      # PREBUILD: 
