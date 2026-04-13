@@ -169,11 +169,12 @@ class Crawler:
             self.config_yaml_filepath,
         )
         try:
-            with smart_open.open(
-                self.config_yaml_filepath, "rb"
-            ) as f_in, smart_open.open(
-                self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH, "wb"
-            ) as f_out:
+            with (
+                smart_open.open(self.config_yaml_filepath, "rb") as f_in,
+                smart_open.open(
+                    self.DOCKER_CONTAINER_CONFIG_YAML_FILEPATH, "wb"
+                ) as f_out,
+            ):
                 f_out.write(f_in.read())
         except Exception as e:
             logger.exception(

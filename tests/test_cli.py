@@ -81,8 +81,9 @@ def test_cli_harvest_required_options_bad_yaml_raises_error(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_required_options_good_yaml(caplog, runner):
-    with patch("harvester.crawl.Crawler.crawl"), patch.object(
-        smart_open, "open", mock_open()
+    with (
+        patch("harvester.crawl.Crawler.crawl"),
+        patch.object(smart_open, "open", mock_open()),
     ):
         runner.invoke(
             main,
@@ -106,8 +107,9 @@ def test_cli_harvest_required_options_good_yaml(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_write_wacz(caplog, runner):
-    with patch("harvester.crawl.Crawler.crawl"), patch.object(
-        smart_open, "open", mock_open()
+    with (
+        patch("harvester.crawl.Crawler.crawl"),
+        patch.object(smart_open, "open", mock_open()),
     ):
         runner.invoke(
             main,
@@ -129,11 +131,14 @@ def test_cli_harvest_write_wacz(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_write_records(caplog, runner):
-    with patch(
-        "harvester.crawl.Crawler.crawl",
-    ), patch(
-        "harvester.records.CrawlRecordsParser.generate_records",
-    ) as mock_generate_records:
+    with (
+        patch(
+            "harvester.crawl.Crawler.crawl",
+        ),
+        patch(
+            "harvester.records.CrawlRecordsParser.generate_records",
+        ) as mock_generate_records,
+    ):
         runner.invoke(
             main,
             [
@@ -213,12 +218,12 @@ def test_cli_generate_records_records_jsonlines(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_with_sitemap_options(caplog, runner):
-    with patch("harvester.crawl.Crawler.crawl"), patch(
-        "harvester.sitemaps.SitemapsParser.parse"
-    ), patch("harvester.sitemaps.SitemapsParser.write_urls") as mock_write_urls, patch(
-        "harvester.crawl.Crawler._build_subprocess_command"
-    ) as mock_build_command, patch.object(
-        smart_open, "open", mock_open()
+    with (
+        patch("harvester.crawl.Crawler.crawl"),
+        patch("harvester.sitemaps.SitemapsParser.parse"),
+        patch("harvester.sitemaps.SitemapsParser.write_urls") as mock_write_urls,
+        patch("harvester.crawl.Crawler._build_subprocess_command") as mock_build_command,
+        patch.object(smart_open, "open", mock_open()),
     ):
         mock_build_command.return_value = ["crawl", "--collection", "sitemap-test"]
         runner.invoke(
@@ -244,14 +249,12 @@ def test_cli_harvest_with_sitemap_options(caplog, runner):
 
 @pytest.mark.usefixtures("_mock_inside_container")
 def test_cli_harvest_with_sitemap_urls_output_file(caplog, runner):
-    with patch("harvester.crawl.Crawler.crawl"), patch(
-        "harvester.sitemaps.SitemapsParser.parse"
-    ), patch(
-        "harvester.sitemaps.SitemapsParser.write_urls"
-    ) as mock_write_urls, patch.object(
-        smart_open, "open", mock_open()
-    ), patch(
-        "os.path.exists", return_value=True
+    with (
+        patch("harvester.crawl.Crawler.crawl"),
+        patch("harvester.sitemaps.SitemapsParser.parse"),
+        patch("harvester.sitemaps.SitemapsParser.write_urls") as mock_write_urls,
+        patch.object(smart_open, "open", mock_open()),
+        patch("os.path.exists", return_value=True),
     ):
         runner.invoke(
             main,

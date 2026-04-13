@@ -32,15 +32,17 @@ def test_records_parser_serialize_records(mocked_parser):
         m.assert_called_with("test.xml", "wb")
 
     # test TSV write
-    with patch.object(smart_open, "open", mock_open()) as m, patch.object(
-        pd.DataFrame, "to_csv", return_value=None
+    with (
+        patch.object(smart_open, "open", mock_open()) as m,
+        patch.object(pd.DataFrame, "to_csv", return_value=None),
     ):
         crawl_records.write("test.tsv")
         m.assert_called_with("test.tsv", "wb")
 
     # test CSV write
-    with patch.object(smart_open, "open", mock_open()) as m, patch.object(
-        pd.DataFrame, "to_csv", return_value=None
+    with (
+        patch.object(smart_open, "open", mock_open()) as m,
+        patch.object(pd.DataFrame, "to_csv", return_value=None),
     ):
         crawl_records.write("test.csv")
         m.assert_called_with("test.csv", "wb")

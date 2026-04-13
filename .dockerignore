@@ -1,0 +1,22 @@
+# Python
+.venv
+__pycache__
+*.pyc
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.coverage
+coverage
+
+# Docker
+.arch_tag
+
+# IDE / OS
+.DS_Store
+.idea
+.vscode
+.claude
+
+# App / docs
+docs
+output

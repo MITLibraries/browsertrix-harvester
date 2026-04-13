@@ -157,9 +157,12 @@ def test_sitemaps_parser_pages_override_dates(mock_sitemap_tree):
 
 
 def test_sitemaps_parser_write_urls(mock_sitemap_tree):
-    with patch(
-        "harvester.sitemaps.sitemap_tree_for_homepage", return_value=mock_sitemap_tree
-    ), patch("smart_open.open", mock_open()) as mock_file:
+    with (
+        patch(
+            "harvester.sitemaps.sitemap_tree_for_homepage", return_value=mock_sitemap_tree
+        ),
+        patch("smart_open.open", mock_open()) as mock_file,
+    ):
         parser = SitemapsParser(["https://example.com/sitemap.xml"])
         parser.write_urls("/tmp/urls.txt")
 
@@ -172,9 +175,12 @@ def test_sitemaps_parser_write_urls(mock_sitemap_tree):
 
 
 def test_sitemaps_parser_write_urls_with_filter(mock_sitemap_tree):
-    with patch(
-        "harvester.sitemaps.sitemap_tree_for_homepage", return_value=mock_sitemap_tree
-    ), patch("smart_open.open", mock_open()) as mock_file:
+    with (
+        patch(
+            "harvester.sitemaps.sitemap_tree_for_homepage", return_value=mock_sitemap_tree
+        ),
+        patch("smart_open.open", mock_open()) as mock_file,
+    ):
         parser = SitemapsParser(
             ["https://example.com/sitemap.xml"],
             sitemap_from_date="2025-02-15",
