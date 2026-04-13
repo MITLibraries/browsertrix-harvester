@@ -157,3 +157,4 @@ output/
 .vscode/
 .idea/
 .arch_tag
+.tool-versions

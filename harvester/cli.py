@@ -285,9 +285,10 @@ def harvest(
     # upload WACZ if output file destination provided
     if wacz_output_file:
         logger.info("Writing WACZ archive to: %s", wacz_output_file)
-        with smart_open.open(wacz_output_file, "wb") as wacz_out, smart_open.open(
-            crawler.wacz_filepath, "rb"
-        ) as wacz_in:
+        with (
+            smart_open.open(wacz_output_file, "wb") as wacz_out,
+            smart_open.open(crawler.wacz_filepath, "rb") as wacz_in,
+        ):
             wacz_out.write(wacz_in.read())
 
     # parse crawl and generate records
@@ -311,9 +312,10 @@ def harvest(
             )
         else:
             logger.info("Writing all sitemap URLs to: %s", sitemap_urls_output_file)
-            with open(ALL_SITEMAP_URLS_FILEPATH) as urls_in, smart_open.open(
-                sitemap_urls_output_file, "w"
-            ) as urls_out:
+            with (
+                open(ALL_SITEMAP_URLS_FILEPATH) as urls_in,
+                smart_open.open(sitemap_urls_output_file, "w") as urls_out,
+            ):
                 urls_out.write(urls_in.read())
 
 

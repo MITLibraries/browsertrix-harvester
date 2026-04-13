@@ -66,16 +66,18 @@ def test_crawl_remove_previous_crawl(create_mocked_crawler):
     crawler = create_mocked_crawler()
 
     # assert removal
-    with patch("os.path.exists", return_value=True), patch(
-        "shutil.rmtree"
-    ) as mock_rmtree:
+    with (
+        patch("os.path.exists", return_value=True),
+        patch("shutil.rmtree") as mock_rmtree,
+    ):
         crawler._remove_previous_crawl()
         mock_rmtree.assert_called_once_with(crawler.crawl_output_dir)
 
     # assert skips removal
-    with patch("os.path.exists", return_value=False), patch(
-        "shutil.rmtree"
-    ) as mock_rmtree:
+    with (
+        patch("os.path.exists", return_value=False),
+        patch("shutil.rmtree") as mock_rmtree,
+    ):
         crawler._remove_previous_crawl()
         mock_rmtree.assert_not_called()
 
@@ -165,8 +167,9 @@ def test_crawl_fails_to_create_wacz_raises_error(create_mocked_crawler):
     mock_process.stderr = iter(stderrs)
     mock_process.wait.return_value = 0
 
-    with pytest.raises(WaczFileDoesNotExist), patch(
-        "subprocess.Popen", return_value=mock_process
+    with (
+        pytest.raises(WaczFileDoesNotExist),
+        patch("subprocess.Popen", return_value=mock_process),
     ):
         crawler.crawl()
 
@@ -184,8 +187,9 @@ def test_crawl_fatal_log_raises_runtime_error(create_mocked_crawler):
     mock_process.stderr = iter([])
     mock_process.wait.return_value = 0
 
-    with pytest.raises(RuntimeError, match="Fatal log message detected"), patch(
-        "subprocess.Popen", return_value=mock_process
+    with (
+        pytest.raises(RuntimeError, match="Fatal log message detected"),
+        patch("subprocess.Popen", return_value=mock_process),
     ):
         crawler.crawl()
 
@@ -205,7 +209,8 @@ def test_crawl_no_valid_seeds_raises_exception(create_mocked_crawler):
     mock_process.stdout = iter(stdouts)
     mock_process.stderr = iter([])
     mock_process.wait.return_value = 0
-    with pytest.raises(NoValidSeedsError), patch(
-        "subprocess.Popen", return_value=mock_process
+    with (
+        pytest.raises(NoValidSeedsError),
+        patch("subprocess.Popen", return_value=mock_process),
     ):
         crawler.crawl()

@@ -157,7 +157,6 @@ class WACZClient:
         files_found = []
 
         for filepath in self.CDX_INDEX_FILEPATH:
-
             # check if CDX file type exists
             try:
                 file_object = self._get_archive_file_object(filepath)

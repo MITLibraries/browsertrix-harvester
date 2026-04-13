@@ -9,18 +9,20 @@ See [architecture docs](docs/architecture.md).
 
 ## Development
 
-When performing web crawls, this application invokes browsertrix-crawler.  While possible to install browsertrix-crawler on your local machine, this application is oriented around running as a Docker container where it is already installed.  For this reason, the pipenv convenience command `harvester-dockerized` has been created.
+When performing web crawls, this application invokes browsertrix-crawler.  While possible to install browsertrix-crawler on your local machine, this application is oriented around running as a Docker container where it is already installed.
 
 - To install with dev dependencies: `make install`
 - To update dependencies: `make update`
 - To run unit tests: `make test`
 - To lint the repo: `make lint`
+- To auto-fix lint issues: `make lint-fix`
+- To run security scanning: `make security`
 - Build local docker image: `make docker-build`
 - To run the app:
-  - Non-Dockerized: `pipenv run harvester --help`
+  - Non-Dockerized: `uv run harvester --help`
     - Works locally for many things but will throw error for actions that perform crawls
   - Dockerized: `make docker-shell`
-    - Shell into local container and run `pipenv run harvester --help`
+    - Shell into local container and run `harvester --help`
 
 ### Local Test Crawl
 ```shell
@@ -196,7 +198,7 @@ it's likely that:
 1. either the config YAML or output files are attempting to read/write from S3 
 2. the container does not have AWS credentials to work with
 
-The Pipfile command `harvester-dockerized` mounts your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.
+When running Dockerized, mount your host machine's `~/.aws` folder into the container to provide AWS credentials.  Copy/pasting credentials into the calling terminal is not sufficient.  Either `aws configure sso` or manually setting `~/.aws/credentials` file is required.
 
 ## Related Assets
 This is a repository that provides the Browsertrix Harvester. The following application infrastructure repositories are related to this repository:
